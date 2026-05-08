@@ -1,0 +1,45 @@
+"use client";
+
+import { useCredit } from "@/hooks/useAssetClass";
+import { AssetClassCard } from "@/components/dashboard/AssetClassCard";
+import { CycleChart } from "@/components/charts/CycleChart";
+import { YieldCurveChart } from "@/components/charts/YieldCurveChart";
+
+export default function CreditPage() {
+  const { data, isLoading, isError } = useCredit();
+
+  if (isLoading) return <div className="text-gray-400">Loading credit data...</div>;
+  if (isError) return <div className="text-red-400">Failed to load credit data.</div>;
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-white">Credit</h1>
+        <p className="text-gray-400 mt-1 text-sm">
+          Government and corporate bond risk, credit spreads, and yield curve analysis
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {data?.map((asset) => (
+          <AssetClassCard key={asset.sub_class} data={asset} />
+        ))}
+      </div>
+
+      {data && data.length > 0 && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="bg-gray-900 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-gray-300 mb-3">Yield Curve</h3>
+            <YieldCurveChart />
+          </div>
+          <div className="bg-gray-900 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-gray-300 mb-3">
+              Credit Price History (3Y)
+            </h3>
+            <CycleChart assets={data} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
