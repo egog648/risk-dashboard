@@ -7,6 +7,18 @@ Operational guidance for local and containerized development environments.
 - `GET /api/v1/data-status` should not remain in sustained `error` state.
 - Frontend should load and render asset cards without repeated API errors.
 
+## Test Suites (Phase 2)
+- Backend smoke + contracts:
+  - `cd backend && pytest tests/test_api_smoke.py tests/test_api_contracts.py`
+- Frontend integration tests:
+  - `cd frontend && npm run test`
+- Frontend e2e happy path:
+  - `cd frontend && npm run test:e2e`
+
+### Notes
+- The e2e happy path assumes a reachable backend at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`) with valid `FRED_API_KEY` and `TIINGO_API_KEY`.
+- The e2e flow triggers refresh and waits for data status readiness before asserting overview and optimizer behavior.
+
 ## First-Run Bootstrap Validation (Deterministic)
 Use this exact sequence on a fresh environment:
 1. Start services: `docker-compose up --build`.

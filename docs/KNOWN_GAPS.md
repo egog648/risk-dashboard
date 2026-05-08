@@ -33,9 +33,11 @@ This file tracks confirmed limitations and unresolved risks that matter for road
 ### 4) Limited integration and end-to-end test coverage
 - Severity: Medium
 - Impact: Regressions may slip through because coverage is weighted toward unit logic.
-- Current workaround: Use backend smoke tests plus manual frontend validation.
-- Planned fix: Expand with backend contract tests, frontend integration tests, and one e2e happy path.
-- Progress: Added `backend/tests/test_api_smoke.py` for core health and `/api/v1/*` smoke coverage in Phase 1.
+- Current workaround: Use local pre-merge test suite execution; CI enforcement is still pending.
+- Planned fix: Add CI workflow enforcement for backend smoke/contracts, frontend integration, and e2e happy path.
+- Progress:
+  - Phase 1: Added `backend/tests/test_api_smoke.py` for core health and `/api/v1/*` smoke coverage.
+  - Phase 2: Added `backend/tests/test_api_contracts.py`, frontend Vitest/MSW integration tests under `frontend/tests/`, and `frontend/e2e/happy-path.spec.ts` with deterministic optimizer step; local runs are green.
 - Roadmap phase: Phase 2
 
 ### 5) Hardcoded expected-return assumptions

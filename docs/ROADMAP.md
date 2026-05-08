@@ -34,6 +34,12 @@ Goal: make core API/UI behavior reliable under normal local usage.
 ## Phase 2 — Strengthen Quality Gates
 Goal: reduce regression risk and improve confidence in iterative changes.
 
+### Progress Snapshot
+- Completed: backend API contract test suite added with schema/field assertions for data status, yield curve, all-asset endpoints, and portfolio frontier.
+- Completed: frontend integration test harness scaffolded (Vitest + Testing Library + MSW) with initial hook/component/page tests for overview, data-status bar, and optimizer flow.
+- Completed: one Playwright e2e happy-path spec added for refresh -> status -> overview -> optimizer with deterministic optimizer assertion path.
+- Completed: local green run record captured for backend smoke/contracts, frontend integration, and e2e happy path.
+
 ### Priorities
 - Add backend API contract tests for response model shapes.
 - Add frontend integration tests for API hooks and key dashboard rendering paths.
