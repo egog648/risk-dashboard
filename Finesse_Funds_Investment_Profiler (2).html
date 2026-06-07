@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finesse Funds — Investment Profile Scorer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #f0f4f8; min-height: 100vh; color: #333; }
+
+  .header { background: #1a3a5c; color: #fff; padding: 20px 28px; border-bottom: 3px solid #2a5d8f; }
+  .header-brand { font-size: 11px; text-transform: uppercase; letter-spacing: 2.5px; opacity: 0.55; margin-bottom: 4px; }
+  .header-title { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+  .header-sub { font-size: 12px; opacity: 0.45; margin-top: 3px; }
+
+  .main { display: flex; flex-wrap: wrap; max-width: 1100px; margin: 0 auto; }
+  .col-left { flex: 1 1 440px; min-width: 320px; padding: 20px; max-height: calc(100vh - 90px); overflow-y: auto; }
+  .col-right { flex: 1 1 380px; min-width: 320px; padding: 20px; position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+  .tab { flex: 1; padding: 10px 6px; border-radius: 8px; border: 1.5px solid #dde4ec; background: #fff; color: #6b8299; cursor: pointer; font-size: 11px; font-weight: 700; font-family: 'DM Sans', sans-serif; text-align: center; transition: all 0.15s ease; }
+  .tab.active { border-color: #1a3a5c; background: #1a3a5c; color: #fff; }
+  .tab:hover:not(.active) { border-color: #b0c4d8; background: #f6f9fc; }
+  .tab-count { font-size: 9px; font-weight: 400; margin-top: 2px; opacity: 0.7; }
+
+  .section-subtitle { font-size: 12px; color: #8899aa; margin-bottom: 16px; font-style: italic; }
+
+  .question { margin-bottom: 22px; }
+  .question-text { font-size: 14px; font-weight: 700; color: #1a3a5c; margin-bottom: 8px; line-height: 1.45; }
+  .question-num { color: #6b8299; margin-right: 6px; }
+  .options { display: flex; flex-direction: column; gap: 4px; }
+  .option-btn {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px;
+    border: 1.5px solid #dde4ec; background: #fff; cursor: pointer; text-align: left;
+    font-size: 13px; color: #4a5568; font-weight: 400; transition: all 0.15s ease;
+    font-family: 'DM Sans', sans-serif; line-height: 1.4;
+  }
+  .option-btn:hover { border-color: #a0b4c8; background: #fafcfe; }
+  .option-btn.selected { border: 2px solid #1a3a5c; background: #eaf1f8; color: #1a3a5c; font-weight: 600; }
+  .option-letter {
+    width: 22px; height: 22px; min-width: 22px; border-radius: 50%;
+    border: 2px solid #c0ccda; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #8899aa; background: transparent; transition: all 0.15s ease;
+  }
+  .option-btn.selected .option-letter { border-color: #1a3a5c; background: #1a3a5c; color: #fff; }
+
+  .card { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(26,58,92,0.08); border: 1px solid #e0e8f0; }
+  .card-label { font-size: 11px; font-weight: 700; color: #8899aa; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 6px; }
+
+  .tri-scores { display: flex; justify-content: center; gap: 20px; margin-top: 4px; margin-bottom: 8px; }
+  .tri-score { font-size: 13px; font-weight: 700; }
+  .tri-g { color: #2a7d5f; }
+  .tri-i { color: #2a5d9f; }
+  .tri-s { color: #9f8a2a; }
+
+  .gauge-wrap { text-align: center; }
+
+  .alloc-bar { margin-bottom: 10px; }
+  .alloc-header { display: flex; justify-content: space-between; margin-bottom: 3px; }
+  .alloc-label { font-size: 12px; font-weight: 600; color: #1a3a5c; }
+  .alloc-sublabel { font-weight: 400; color: #8899aa; }
+  .alloc-pct { font-size: 13px; font-weight: 800; }
+  .alloc-track { width: 100%; height: 10px; background: #e8edf2; border-radius: 5px; overflow: hidden; }
+  .alloc-fill { height: 100%; border-radius: 5px; transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+  .impl { margin-top: 16px; padding: 14px; background: #f6f9fc; border-radius: 10px; border: 1px solid #e0e8f0; }
+  .impl-title { font-size: 12px; font-weight: 700; color: #1a3a5c; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .impl-sleeve { margin-bottom: 8px; }
+  .impl-sleeve-label { font-size: 11px; font-weight: 700; margin-bottom: 2px; }
+  .impl-sleeve-detail { font-size: 11px; color: #556677; }
+  .impl-sleeve-sub { font-size: 10px; color: #8899aa; font-style: italic; }
+
+  .report { background: #fff; border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(26,58,92,0.08); border: 1px solid #e0e8f0; }
+  .report-header { font-size: 14px; font-weight: 800; color: #1a3a5c; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .report-header-icon { font-size: 16px; }
+  .report-divider { height: 2px; background: linear-gradient(90deg, #1a3a5c, #e0e8f0); margin: 10px 0 14px; border-radius: 1px; }
+  .report-section { margin-bottom: 16px; }
+  .report-section-title { font-size: 12px; font-weight: 700; color: #1a3a5c; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; border-bottom: 1px solid #e8edf2; padding-bottom: 4px; }
+  .report-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 12px; }
+  .report-row-label { color: #4a5568; }
+  .report-row-value { font-weight: 700; color: #1a3a5c; }
+  .report-bar-wrap { margin-top: 2px; margin-bottom: 8px; }
+  .report-bar-track { width: 100%; height: 7px; background: #e8edf2; border-radius: 4px; overflow: hidden; }
+  .report-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .report-narrative { font-size: 12px; color: #4a5568; line-height: 1.65; margin-top: 6px; }
+  .report-narrative strong { color: #1a3a5c; }
+  .report-callout { background: #f0f6fb; border-left: 3px solid #1a3a5c; padding: 10px 14px; border-radius: 0 8px 8px 0; margin-top: 10px; font-size: 11px; color: #3a5a7c; line-height: 1.55; }
+  .report-callout-warn { background: #fef8f0; border-left-color: #c0392b; color: #8b3a2a; }
+  .report-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; }
+  .report-table th { background: #1a3a5c; color: #fff; padding: 6px 10px; text-align: left; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .report-table th:first-child { border-radius: 6px 0 0 0; }
+  .report-table th:last-child { border-radius: 0 6px 0 0; text-align: right; }
+  .report-table td { padding: 6px 10px; border-bottom: 1px solid #e8edf2; color: #4a5568; }
+  .report-table tr:nth-child(even) td { background: #f8fafc; }
+  .report-table .pct-cell { font-weight: 700; color: #1a3a5c; text-align: right; }
+  .report-empty { text-align: center; padding: 30px 20px; color: #b0bec5; font-size: 13px; font-style: italic; }
+
+  .print-btn {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding: 8px 16px;
+    background: #1a3a5c; color: #fff; border: none; border-radius: 8px; font-size: 12px;
+    font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.15s;
+  }
+  .print-btn:hover { background: #254d73; }
+  .reset-btn {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; margin-left: 8px; padding: 8px 16px;
+    background: #fff; color: #1a3a5c; border: 1.5px solid #dde4ec; border-radius: 8px; font-size: 12px;
+    font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  }
+  .reset-btn:hover { border-color: #c0392b; color: #c0392b; }
+
+  .client-input {
+    width: 100%; padding: 8px 12px; border: 1.5px solid #dde4ec; border-radius: 8px;
+    font-size: 14px; font-family: 'DM Sans', sans-serif; color: #1a3a5c; margin-bottom: 16px;
+    background: #fff; outline: none; transition: border-color 0.15s;
+  }
+  .client-input:focus { border-color: #1a3a5c; }
+  .client-input::placeholder { color: #b0bec5; }
+
+  @media print {
+    body { background: #fff; }
+    .col-left { display: none; }
+    .col-right { position: static; flex: 1 1 100%; max-width: 700px; margin: 0 auto; max-height: none; overflow: visible; }
+    .header { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .card, .report { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+    .print-btn, .reset-btn, .save-btn, .export-btn { display: none; }
+    .report-table th { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .clients-panel { display: none; }
+  }
+
+  .save-btn {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; margin-left: 8px;
+    padding: 8px 16px; background: #2a7d5f; color: #fff; border: none; border-radius: 8px;
+    font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+  .save-btn:hover { background: #1e6049; }
+  .export-btn {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; margin-left: 8px;
+    padding: 8px 16px; background: #2a5d9f; color: #fff; border: none; border-radius: 8px;
+    font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+  .export-btn:hover { background: #1e4a7a; }
+  .save-status { font-size: 11px; color: #2a7d5f; margin-top: 6px; min-height: 18px; text-align: center; font-weight: 600; }
+  .save-status.error { color: #c0392b; }
+
+  .clients-panel { background: #fff; border-radius: 14px; padding: 20px; margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(26,58,92,0.08); border: 1px solid #e0e8f0; }
+  .clients-panel-header { font-size: 14px; font-weight: 800; color: #1a3a5c; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between; }
+  .clients-refresh-btn { font-size: 11px; color: #1a3a5c; background: none; border: 1.5px solid #dde4ec;
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .clients-refresh-btn:hover { border-color: #1a3a5c; }
+  .client-row { padding: 10px 12px; border-radius: 8px; border: 1px solid #e8edf2; margin-bottom: 8px; font-size: 12px; }
+  .client-row:last-child { margin-bottom: 0; }
+  .client-row-name { font-weight: 700; color: #1a3a5c; }
+  .client-row-meta { color: #8899aa; margin-top: 2px; }
+  .clients-empty { text-align: center; padding: 20px; color: #b0bec5; font-size: 12px; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">Finesse Funds</div>
+  <div class="header-title">Investment Profile Scorer</div>
+  <div class="header-sub" id="progress">0/12 questions answered</div>
+</div>
+
+<div class="main">
+  <div class="col-left">
+    <input type="text" class="client-input" id="clientName" placeholder="Client name...">
+    <div class="tabs" id="tabs"></div>
+    <div class="section-subtitle" id="sectionSubtitle"></div>
+    <div id="questionsContainer"></div>
+  </div>
+
+  <div class="col-right">
+    <div id="clientNameDisplay" style="font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:12px;display:none;"></div>
+
+    <div class="card">
+      <div class="card-label">Portfolio Position</div>
+      <div style="text-align:center;">
+        <svg id="triangleSvg" viewBox="0 0 480 430" style="width:100%;max-width:420px;"></svg>
+      </div>
+      <div class="tri-scores" id="triScores" style="display:none;">
+        <span class="tri-score tri-g" id="triG"></span>
+        <span class="tri-score tri-i" id="triI"></span>
+        <span class="tri-score tri-s" id="triS"></span>
+      </div>
+    </div>
+
+    <div class="card gauge-wrap">
+      <div class="card-label">Aggression Dial</div>
+      <svg id="gaugeSvg" viewBox="-30 0 260 158" style="width:100%;max-width:300px;"></svg>
+    </div>
+
+    <div class="card">
+      <div class="card-label" style="text-align:left;">Recommended Allocation</div>
+      <div id="allocBars"></div>
+      <div id="implDetail"></div>
+    </div>
+
+    <div id="advisorReport"></div>
+
+    <div style="text-align:center;">
+      <button class="print-btn" onclick="window.print()">&#128424; Print Summary</button>
+      <button class="save-btn" onclick="saveToLocalStorage()">&#128190; Save Profile</button>
+      <button class="export-btn" onclick="exportCSV()">&#128196; Export CSV</button>
+      <button class="reset-btn" onclick="resetAll()">&#8634; Reset</button>
+    </div>
+    <div class="save-status" id="saveStatus"></div>
+  </div>
+</div>
+
+<div style="max-width:1100px; margin:0 auto; padding:0 20px 30px;">
+  <div class="clients-panel">
+    <div class="clients-panel-header">
+      Saved Client Profiles
+      <button class="clients-refresh-btn" onclick="renderSavedClients()">&#8635; Refresh</button>
+    </div>
+    <div id="clientsList">
+      <div class="clients-empty">No saved profiles yet. Complete the questionnaire and click Save Profile.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const OBJECTIVE_QUESTIONS = [
+  { num:1, text:"What is the primary purpose of this investment account?", options:[
+    {letter:"A",text:"Protect principal / keep up with inflation",g:0,i:0,s:10},
+    {letter:"B",text:"Generate steady income (dividends, interest)",g:0,i:10,s:0},
+    {letter:"C",text:"Long-term capital appreciation",g:8,i:0,s:2},
+    {letter:"D",text:"Maximize growth aggressively",g:10,i:0,s:0}
+  ]},
+  { num:2, text:"When do you expect to begin withdrawing from this account?", options:[
+    {letter:"A",text:"Currently withdrawing or within 1\u20132 years",g:0,i:4,s:6},
+    {letter:"B",text:"In 3\u20135 years",g:2,i:4,s:4},
+    {letter:"C",text:"In 6\u201310 years",g:6,i:2,s:2},
+    {letter:"D",text:"More than 10 years from now",g:9,i:0,s:1}
+  ]},
+  { num:3, text:"How important is receiving regular income from this portfolio?", options:[
+    {letter:"A",text:"Essential \u2014 I rely on it for living expenses",g:0,i:10,s:0},
+    {letter:"B",text:"Important \u2014 meaningful but not sole source",g:1,i:7,s:2},
+    {letter:"C",text:"Nice to have \u2014 I\u2019d reinvest most of it",g:6,i:2,s:2},
+    {letter:"D",text:"Not important \u2014 focused entirely on growth",g:9,i:0,s:1}
+  ]},
+  { num:4, text:"Which best describes your overall financial situation?", options:[
+    {letter:"A",text:"Retired/nearing retirement; significant portion of savings",g:0,i:3,s:7},
+    {letter:"B",text:"Stable income; one of several savings sources",g:3,i:3,s:4},
+    {letter:"C",text:"Peak earning years with time to recover",g:7,i:1,s:2},
+    {letter:"D",text:"Substantial assets elsewhere; can take significant risk",g:8,i:1,s:1}
+  ]},
+  { num:5, text:"What percentage of your total investable assets does this account represent?", options:[
+    {letter:"A",text:"More than 75% \u2014 substantially all liquid wealth",g:0,i:1,s:9},
+    {letter:"B",text:"50\u201375% \u2014 a major portion",g:2,i:2,s:6},
+    {letter:"C",text:"25\u201350% \u2014 meaningful but not dominant",g:5,i:2,s:3},
+    {letter:"D",text:"Less than 25% \u2014 significant assets elsewhere",g:7,i:1,s:2}
+  ]}
+];
+
+const RISK_QUESTIONS = [
+  { num:6, text:"Maximum portfolio decline you could tolerate in a single year?", options:[
+    {letter:"A",text:"Any loss would concern me \u2014 stay close to breakeven",score:1},
+    {letter:"B",text:"Up to 10% \u2014 uncomfortable but acceptable",score:2},
+    {letter:"C",text:"10\u201320% if I understood why and believed in the plan",score:3},
+    {letter:"D",text:"20\u201330%+ \u2014 the price of higher long-term returns",score:4}
+  ]},
+  { num:7, text:"You invested $100K and one year later it\u2019s worth $80K. What do you do?", options:[
+    {letter:"A",text:"Sell everything \u2014 can\u2019t afford to lose more",score:1},
+    {letter:"B",text:"Shift a significant portion to bonds or cash",score:2},
+    {letter:"C",text:"Hold steady \u2014 stick with the plan",score:3},
+    {letter:"D",text:"Buy more \u2014 this is a buying opportunity",score:4}
+  ]},
+  { num:8, text:"Which portfolio would you prefer? (Best / worst case over 12 months)", options:[
+    {letter:"A",text:"Steady: +6% / \u22122%",score:1},
+    {letter:"B",text:"Balanced: +12% / \u221210%",score:2},
+    {letter:"C",text:"Growth: +20% / \u221218%",score:3},
+    {letter:"D",text:"Aggressive: +35% / \u221230%",score:4}
+  ]},
+  { num:9, text:"How would you describe your investment experience?", options:[
+    {letter:"A",text:"Very limited \u2014 savings accounts or CDs",score:1},
+    {letter:"B",text:"Some \u2014 mutual funds or basic retirement account",score:2},
+    {letter:"C",text:"Experienced \u2014 diversified stocks, bonds, alternatives",score:3},
+    {letter:"D",text:"Very experienced \u2014 actively trade securities/options",score:4}
+  ]},
+  { num:10, text:"Markets drop 25% in a month due to a global crisis. How do you respond?", options:[
+    {letter:"A",text:"Sell immediately \u2014 stop the bleeding",score:1},
+    {letter:"B",text:"Call advisor and seriously consider reducing exposure",score:2},
+    {letter:"C",text:"Uncomfortable, but trust the plan and sit tight",score:3},
+    {letter:"D",text:"Get excited \u2014 start looking for what to buy",score:4}
+  ]}
+];
+
+const GOVERNOR_QUESTIONS = [
+  { num:11, text:"Do you have an adequate emergency fund (3\u20136 months) outside this account?", options:[
+    {letter:"A",text:"No \u2014 this account may need to serve that purpose",cap:30},
+    {letter:"B",text:"Partially \u2014 some reserves but not 3\u20136 months",cap:60},
+    {letter:"C",text:"Yes \u2014 solid emergency fund separate from this",cap:100},
+    {letter:"D",text:"Yes, and then some \u2014 substantial liquid reserves",cap:100}
+  ]},
+  { num:12, text:"Do you have stable income that covers essential expenses without this portfolio?", options:[
+    {letter:"A",text:"No \u2014 I depend on this portfolio for essentials",cap:40},
+    {letter:"B",text:"Partially \u2014 income covers some but not all essentials",cap:60},
+    {letter:"C",text:"Yes \u2014 income covers essentials comfortably",cap:100},
+    {letter:"D",text:"Yes \u2014 income exceeds expenses significantly",cap:100}
+  ]}
+];
+
+const SECTIONS = [
+  { title:"Investment Objective", subtitle:"Where in the triangle", questions:OBJECTIVE_QUESTIONS, total:5 },
+  { title:"Risk Tolerance", subtitle:"The aggression dial", questions:RISK_QUESTIONS, total:5 },
+  { title:"Financial Safeguards", subtitle:"The governor", questions:GOVERNOR_QUESTIONS, total:2 }
+];
+
+let answers = {};
+let activeSection = 0;
+
+function computeScores() {
+  let gT=0, iT=0, sT=0;
+  OBJECTIVE_QUESTIONS.forEach(q => {
+    if (answers[q.num] !== undefined) { const o=q.options[answers[q.num]]; gT+=o.g; iT+=o.i; sT+=o.s; }
+  });
+  const sum = gT+iT+sT;
+  const g = sum>0 ? gT/sum : 0;
+  const i = sum>0 ? iT/sum : 0;
+  const s = sum>0 ? sT/sum : 0;
+
+  let riskSum=0, riskCount=0;
+  RISK_QUESTIONS.forEach(q => {
+    if (answers[q.num] !== undefined) { riskSum+=q.options[answers[q.num]].score; riskCount++; }
+  });
+  const rawAgg = riskCount>0 ? ((riskSum-riskCount)/(riskCount*3))*100 : 0;
+
+  let cap = 100;
+  GOVERNOR_QUESTIONS.forEach(q => {
+    if (answers[q.num] !== undefined) cap = Math.min(cap, q.options[answers[q.num]].cap);
+  });
+  const govAgg = Math.min(rawAgg, cap);
+
+  const objAns = OBJECTIVE_QUESTIONS.filter(q=>answers[q.num]!==undefined).length;
+  const riskAns = riskCount;
+  const govAns = GOVERNOR_QUESTIONS.filter(q=>answers[q.num]!==undefined).length;
+
+  return { g,i,s, rawAgg, govAgg, cap, objAns, riskAns, govAns, sum, totalAns: objAns+riskAns+govAns };
+}
+
+function renderTabs() {
+  const sc = computeScores();
+  const counts = [sc.objAns, sc.riskAns, sc.govAns];
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = '';
+  SECTIONS.forEach((sec, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (idx===activeSection?' active':'');
+    btn.innerHTML = '<div>'+sec.title+'</div><div class="tab-count">'+counts[idx]+'/'+sec.total+'</div>';
+    btn.onclick = () => { activeSection=idx; renderTabs(); renderQuestions(); };
+    tabsEl.appendChild(btn);
+  });
+  document.getElementById('sectionSubtitle').textContent = SECTIONS[activeSection].subtitle;
+}
+
+function renderQuestions() {
+  const container = document.getElementById('questionsContainer');
+  container.innerHTML = '';
+  SECTIONS[activeSection].questions.forEach(q => {
+    const div = document.createElement('div');
+    div.className = 'question';
+    div.innerHTML = '<div class="question-text"><span class="question-num">Q'+q.num+'.</span>'+q.text+'</div><div class="options"></div>';
+    container.appendChild(div);
+    const optsEl = div.querySelector('.options');
+    q.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn' + (answers[q.num]===idx?' selected':'');
+      btn.innerHTML = '<span class="option-letter">'+opt.letter+'</span>'+opt.text;
+      btn.onclick = () => { answers[q.num]=idx; renderAll(); };
+      optsEl.appendChild(btn);
+    });
+  });
+}
+
+function renderTriangle() {
+  const sc = computeScores();
+  const cx=240, cy=195, r=150;
+  const vG={x:cx,y:cy-r};
+  const vI={x:cx+r*Math.cos(Math.PI/6),y:cy+r*Math.sin(Math.PI/6)};
+  const vS={x:cx-r*Math.cos(Math.PI/6),y:cy+r*Math.sin(Math.PI/6)};
+
+  const hue = 210 - sc.govAgg*1.8;
+  const dotColor = 'hsl('+hue+',75%,45%)';
+  const ringColor = 'hsl('+hue+',85%,55%)';
+  const ringR = 12 + sc.govAgg*0.14;
+  const ringW = 2 + sc.govAgg*0.03;
+  const px = sc.g*vG.x + sc.i*vI.x + sc.s*vS.x;
+  const py = sc.g*vG.y + sc.i*vI.y + sc.s*vS.y;
+  const dash = sc.govAgg>70 ? '' : 'stroke-dasharray="5,3"';
+
+  let gridLines = '';
+  [0.25,0.5,0.75].forEach(t => {
+    const iG={x:cx+(vG.x-cx)*t, y:cy+(vG.y-cy)*t};
+    const iI={x:cx+(vI.x-cx)*t, y:cy+(vI.y-cy)*t};
+    const iS={x:cx+(vS.x-cx)*t, y:cy+(vS.y-cy)*t};
+    gridLines += '<polygon points="'+iG.x+','+iG.y+' '+iI.x+','+iI.y+' '+iS.x+','+iS.y+'" fill="none" stroke="#1a3a5c" stroke-width="0.5" stroke-opacity="0.15" stroke-dasharray="4,4"/>';
+  });
+
+  let dotHtml = '';
+  if (sc.sum > 0) {
+    dotHtml = '<circle cx="'+px+'" cy="'+py+'" r="'+ringR+'" fill="none" stroke="'+ringColor+'" stroke-width="'+ringW+'" '+dash+' opacity="0.7"><animate attributeName="r" values="'+ringR+';'+(ringR+3)+';'+ringR+'" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0.4;0.7" dur="2.5s" repeatCount="indefinite"/></circle><circle cx="'+px+'" cy="'+py+'" r="7" fill="'+dotColor+'" stroke="#fff" stroke-width="2.5"/>';
+  }
+
+  document.getElementById('triangleSvg').innerHTML =
+    '<defs><linearGradient id="triFill" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1a3a5c" stop-opacity="0.06"/><stop offset="100%" stop-color="#1a3a5c" stop-opacity="0.12"/></linearGradient></defs>' +
+    gridLines +
+    '<polygon points="'+vG.x+','+vG.y+' '+vI.x+','+vI.y+' '+vS.x+','+vS.y+'" fill="url(#triFill)" stroke="#1a3a5c" stroke-width="2" stroke-linejoin="round"/>' +
+    '<text x="'+vG.x+'" y="'+(vG.y-26)+'" text-anchor="middle" font-size="13" font-weight="700" fill="#1a3a5c" font-family="DM Sans,sans-serif">GROWTH</text>' +
+    '<text x="'+vG.x+'" y="'+(vG.y-12)+'" text-anchor="middle" font-size="11" fill="#6b8299" font-family="DM Sans,sans-serif">Equities</text>' +
+    '<text x="'+(vI.x+18)+'" y="'+(vI.y+18)+'" text-anchor="start" font-size="13" font-weight="700" fill="#1a3a5c" font-family="DM Sans,sans-serif">INCOME</text>' +
+    '<text x="'+(vI.x+18)+'" y="'+(vI.y+33)+'" text-anchor="start" font-size="11" fill="#6b8299" font-family="DM Sans,sans-serif">Fixed Income</text>' +
+    '<text x="'+(vS.x-18)+'" y="'+(vS.y+18)+'" text-anchor="end" font-size="13" font-weight="700" fill="#1a3a5c" font-family="DM Sans,sans-serif">SAFETY</text>' +
+    '<text x="'+(vS.x-18)+'" y="'+(vS.y+33)+'" text-anchor="end" font-size="11" fill="#6b8299" font-family="DM Sans,sans-serif">Cash / MM</text>' +
+    dotHtml;
+
+  const triScores = document.getElementById('triScores');
+  if (sc.sum > 0) {
+    triScores.style.display = 'flex';
+    document.getElementById('triG').textContent = Math.round(sc.g*100)+'% G';
+    document.getElementById('triI').textContent = Math.round(sc.i*100)+'% I';
+    document.getElementById('triS').textContent = Math.round(sc.s*100)+'% S';
+  } else {
+    triScores.style.display = 'none';
+  }
+}
+
+function renderGauge() {
+  const sc = computeScores();
+  const angle = v => -135 + (v/100)*270;
+  const arcPath = (sa, ea, radius) => {
+    const s = (sa-90)*Math.PI/180, e = (ea-90)*Math.PI/180;
+    const x1=100+radius*Math.cos(s), y1=100+radius*Math.sin(s);
+    const x2=100+radius*Math.cos(e), y2=100+radius*Math.sin(e);
+    const large = ea-sa>180?1:0;
+    return 'M'+x1+','+y1+' A'+radius+','+radius+' 0 '+large+' 1 '+x2+','+y2;
+  };
+  const hue = 210 - sc.govAgg*1.8;
+  const na = angle(sc.govAgg);
+  const nx = 100+55*Math.cos((na-90)*Math.PI/180);
+  const ny = 100+55*Math.sin((na-90)*Math.PI/180);
+
+  let capMark = '';
+  if (sc.cap < 100) {
+    const ca = angle(sc.cap);
+    const cx1=100+58*Math.cos((ca-90)*Math.PI/180), cy1=100+58*Math.sin((ca-90)*Math.PI/180);
+    const cx2=100+82*Math.cos((ca-90)*Math.PI/180), cy2=100+82*Math.sin((ca-90)*Math.PI/180);
+    const tx=100+92*Math.cos((ca-90)*Math.PI/180), ty=100+92*Math.sin((ca-90)*Math.PI/180);
+    capMark = '<line x1="'+cx1+'" y1="'+cy1+'" x2="'+cx2+'" y2="'+cy2+'" stroke="#c0392b" stroke-width="3" stroke-linecap="round"/><text x="'+tx+'" y="'+ty+'" text-anchor="middle" font-size="8" fill="#c0392b" font-weight="700" font-family="DM Sans,sans-serif">CAP</text>';
+  }
+
+  let colorArc = '';
+  if (sc.govAgg > 0) {
+    colorArc = '<path d="'+arcPath(-135, angle(sc.govAgg), 70)+'" fill="none" stroke="hsl('+hue+',70%,50%)" stroke-width="14" stroke-linecap="round"/>';
+  }
+
+  let capNote = '';
+  if (sc.cap<100 && sc.rawAgg !== sc.govAgg) {
+    capNote = '<text x="-24" y="14" text-anchor="start" font-size="8" fill="#c0392b" font-weight="600" font-family="DM Sans,sans-serif">\u26A0 raw '+Math.round(sc.rawAgg)+'% \u2192 capped '+Math.round(sc.govAgg)+'%</text>';
+  }
+
+  document.getElementById('gaugeSvg').innerHTML =
+    capNote +
+    '<path d="'+arcPath(-135,135,70)+'" fill="none" stroke="#e8edf2" stroke-width="14" stroke-linecap="round"/>' +
+    colorArc + capMark +
+    '<line x1="100" y1="100" x2="'+nx+'" y2="'+ny+'" stroke="#1a3a5c" stroke-width="2.5" stroke-linecap="round"/>' +
+    '<circle cx="100" cy="100" r="5" fill="#1a3a5c"/>' +
+    '<text x="100" y="130" text-anchor="middle" font-size="20" font-weight="800" fill="#1a3a5c" font-family="DM Sans,sans-serif">'+Math.round(sc.govAgg)+'%</text>' +
+    '<text x="-20" y="142" text-anchor="start" font-size="8" fill="#8899aa" font-family="DM Sans,sans-serif">Conservative</text>' +
+    '<text x="220" y="142" text-anchor="end" font-size="8" fill="#8899aa" font-family="DM Sans,sans-serif">Aggressive</text>';
+}
+
+function renderAllocation() {
+  const sc = computeScores();
+  const bars = [
+    { label:"Equities", sub:"Growth", pct:sc.g*100, color:"#2a7d5f" },
+    { label:"Fixed Income", sub:"Income", pct:sc.i*100, color:"#2a5d9f" },
+    { label:"Cash / Money Market", sub:"Safety", pct:sc.s*100, color:"#9f8a2a" }
+  ];
+  document.getElementById('allocBars').innerHTML = bars.map(b =>
+    '<div class="alloc-bar"><div class="alloc-header"><span class="alloc-label">'+b.label+' <span class="alloc-sublabel">('+b.sub+')</span></span><span class="alloc-pct" style="color:'+b.color+'">'+Math.round(b.pct)+'%</span></div><div class="alloc-track"><div class="alloc-fill" style="width:'+b.pct+'%;background:'+b.color+'"></div></div></div>'
+  ).join('');
+
+  const impl = document.getElementById('implDetail');
+  if (sc.sum === 0) { impl.innerHTML = ''; return; }
+  const agg = sc.govAgg/100;
+  const idxPct = Math.round((1-agg)*100);
+  const actPct = Math.round(agg*100);
+  const eqStyle = agg>0.7 ? "Individual stocks, sector ETFs, small-cap, EM" : agg>0.4 ? "Factor-tilted ETFs, international blend, sector tilt" : "Total market index, S&P 500, large-cap blend";
+  const incStyle = agg>0.6 ? "High-yield corporates, preferreds, convertibles" : agg>0.3 ? "Corporate bonds, intermediate duration" : "Treasuries, investment-grade munis";
+
+  let html = '<div class="impl"><div class="impl-title">Implementation Detail</div>';
+  if (sc.g > 0) html += '<div class="impl-sleeve"><div class="impl-sleeve-label" style="color:#2a7d5f">Equity Sleeve ('+Math.round(sc.g*100)+'%)</div><div class="impl-sleeve-detail">'+idxPct+'% index / passive \u2014 '+actPct+'% active / concentrated</div><div class="impl-sleeve-sub">'+eqStyle+'</div></div>';
+  if (sc.i > 0) html += '<div class="impl-sleeve"><div class="impl-sleeve-label" style="color:#2a5d9f">Fixed Income Sleeve ('+Math.round(sc.i*100)+'%)</div><div class="impl-sleeve-sub">'+incStyle+'</div></div>';
+  if (sc.s > 0) html += '<div class="impl-sleeve"><div class="impl-sleeve-label" style="color:#9f8a2a">Safety Sleeve ('+Math.round(sc.s*100)+'%)</div><div class="impl-sleeve-sub">Money market, T-bills</div></div>';
+  html += '</div>';
+  impl.innerHTML = html;
+}
+
+function renderReport() {
+  const sc = computeScores();
+  const el = document.getElementById('advisorReport');
+
+  if (sc.totalAns < 10) {
+    el.innerHTML = '<div class="report"><div class="report-empty">Complete at least 10 of 12 questions to generate the Advisor Report.</div></div>';
+    return;
+  }
+
+  const clientName = document.getElementById('clientName').value.trim() || 'Client';
+  const agg = sc.govAgg / 100;
+  const gPct = Math.round(sc.g * 100);
+  const iPct = Math.round(sc.i * 100);
+  const sPct = Math.round(sc.s * 100);
+  const aggPct = Math.round(sc.govAgg);
+
+  let profileLabel = '';
+  if (gPct >= 60) profileLabel = 'Growth-Oriented';
+  else if (iPct >= 60) profileLabel = 'Income-Oriented';
+  else if (sPct >= 60) profileLabel = 'Capital Preservation';
+  else if (gPct >= 40 && iPct >= 25) profileLabel = 'Growth & Income Blend';
+  else if (gPct >= 40 && sPct >= 25) profileLabel = 'Growth with Safety Cushion';
+  else if (iPct >= 40 && sPct >= 25) profileLabel = 'Income with Safety Cushion';
+  else profileLabel = 'Balanced';
+
+  let riskLabel = '';
+  if (aggPct <= 20) riskLabel = 'Conservative';
+  else if (aggPct <= 40) riskLabel = 'Moderately Conservative';
+  else if (aggPct <= 60) riskLabel = 'Moderate';
+  else if (aggPct <= 80) riskLabel = 'Moderately Aggressive';
+  else riskLabel = 'Aggressive';
+
+  // 4-bucket allocation: carve alternatives from equity/income based on aggression
+  const altFromEquity = agg > 0.5 ? Math.round(gPct * Math.min((agg - 0.5) * 0.4, 0.15)) : 0;
+  const altFromIncome = agg > 0.4 ? Math.round(iPct * Math.min((agg - 0.4) * 0.3, 0.10)) : 0;
+  const totalAlts = altFromEquity + altFromIncome;
+  const stocks = gPct - altFromEquity;
+  const bonds = iPct - altFromIncome;
+  const alts = totalAlts;
+  const cash = sPct;
+
+  const passivePct = Math.round((1 - agg) * 100);
+  const activePct = 100 - passivePct;
+
+  // Vehicle suggestions based on aggression level
+  const eqVehicles = [];
+  if (agg <= 0.3) {
+    eqVehicles.push({ name:'US Total Market Index (VTI / ITOT)', pct:Math.round(stocks*0.65) });
+    eqVehicles.push({ name:'International Developed (VXUS / IXUS)', pct:Math.round(stocks*0.25) });
+    eqVehicles.push({ name:'Dividend Appreciation (VIG / DGRO)', pct:stocks - Math.round(stocks*0.65) - Math.round(stocks*0.25) });
+  } else if (agg <= 0.6) {
+    eqVehicles.push({ name:'US Total Market / S&P 500 Index', pct:Math.round(stocks*0.45) });
+    eqVehicles.push({ name:'International Blend (Developed + EM)', pct:Math.round(stocks*0.20) });
+    eqVehicles.push({ name:'Factor-Tilted / Smart Beta ETFs', pct:Math.round(stocks*0.20) });
+    eqVehicles.push({ name:'Sector / Thematic ETFs', pct:stocks - Math.round(stocks*0.45) - Math.round(stocks*0.20) - Math.round(stocks*0.20) });
+  } else {
+    eqVehicles.push({ name:'US Core Index (S&P 500 / Total Market)', pct:Math.round(stocks*0.30) });
+    eqVehicles.push({ name:'Individual Stock Positions', pct:Math.round(stocks*0.30) });
+    eqVehicles.push({ name:'Sector / Thematic ETFs (Tech, Healthcare, etc.)', pct:Math.round(stocks*0.20) });
+    eqVehicles.push({ name:'Small-Cap / Emerging Markets', pct:stocks - Math.round(stocks*0.30) - Math.round(stocks*0.30) - Math.round(stocks*0.20) });
+  }
+
+  const bondVehicles = [];
+  if (bonds > 0) {
+    if (agg <= 0.3) {
+      bondVehicles.push({ name:'US Treasury / Govt Bond Fund (VGSH / SHY)', pct:Math.round(bonds*0.50) });
+      bondVehicles.push({ name:'Investment-Grade Corporate (LQD / VCIT)', pct:Math.round(bonds*0.30) });
+      bondVehicles.push({ name:'Municipal Bonds (MUB / VTEB)', pct:bonds - Math.round(bonds*0.50) - Math.round(bonds*0.30) });
+    } else if (agg <= 0.6) {
+      bondVehicles.push({ name:'Aggregate Bond Index (AGG / BND)', pct:Math.round(bonds*0.40) });
+      bondVehicles.push({ name:'Corporate Bonds (LQD / VCIT)', pct:Math.round(bonds*0.35) });
+      bondVehicles.push({ name:'TIPS / Inflation Protected (TIP)', pct:bonds - Math.round(bonds*0.40) - Math.round(bonds*0.35) });
+    } else {
+      bondVehicles.push({ name:'High-Yield Corporate (HYG / JNK)', pct:Math.round(bonds*0.40) });
+      bondVehicles.push({ name:'Floating Rate / Bank Loans (BKLN)', pct:Math.round(bonds*0.30) });
+      bondVehicles.push({ name:'Short-Duration Investment Grade', pct:bonds - Math.round(bonds*0.40) - Math.round(bonds*0.30) });
+    }
+  }
+
+  const altVehicles = [];
+  if (alts > 0) {
+    altVehicles.push({ name:'REITs (VNQ / SCHH)', pct:Math.round(alts*0.50) });
+    if (agg > 0.6) {
+      altVehicles.push({ name:'Commodities / Gold (GLD / IAU)', pct:Math.round(alts*0.30) });
+      altVehicles.push({ name:'Convertible Bonds / Preferred (CWB / PFF)', pct:alts - Math.round(alts*0.50) - Math.round(alts*0.30) });
+    } else {
+      altVehicles.push({ name:'Commodities / Gold (GLD / IAU)', pct:alts - Math.round(alts*0.50) });
+    }
+  }
+
+  const cashVehicles = [];
+  if (cash > 0) {
+    cashVehicles.push({ name:'Money Market Fund (VMFXX / SPAXX)', pct:Math.round(cash*0.70) });
+    cashVehicles.push({ name:'Short-Term T-Bills (BIL / SGOV)', pct:cash - Math.round(cash*0.70) });
+  }
+
+  // Narrative
+  let narrative = '<strong>'+clientName+'</strong> profiles as a <strong>'+profileLabel+'</strong> investor with a <strong>'+riskLabel+'</strong> risk posture. ';
+  if (gPct >= 50) narrative += 'The primary objective is capital appreciation, and the portfolio should be weighted toward equities with a long-term growth orientation. ';
+  else if (iPct >= 40) narrative += 'Income generation is a meaningful priority, and the fixed income sleeve should emphasize yield-producing instruments appropriate to the risk level. ';
+  else if (sPct >= 40) narrative += 'Capital preservation is a dominant concern, and the portfolio should prioritize principal protection with minimal volatility exposure. ';
+  else narrative += 'The objectives are well-balanced across growth, income, and safety, calling for a diversified approach across all asset classes. ';
+
+  if (aggPct >= 60) narrative += 'The client\u2019s risk tolerance supports more concentrated positions, active management, and alternative asset exposure within the equity and income sleeves.';
+  else if (aggPct >= 30) narrative += 'The moderate risk tolerance suggests a blend of index-based core holdings with selective active positions where conviction is high.';
+  else narrative += 'The conservative risk profile favors broad diversification, high-quality holdings, and minimal exposure to volatile or speculative instruments.';
+
+  let govWarning = '';
+  if (sc.cap < 100 && sc.rawAgg > sc.cap) {
+    govWarning = '<div class="report-callout report-callout-warn"><strong>\u26A0 Governor Applied:</strong> The client\u2019s stated risk tolerance ('+Math.round(sc.rawAgg)+'%) was capped at '+Math.round(sc.govAgg)+'% due to financial safeguard responses. ';
+    if (sc.cap <= 30) govWarning += 'The client lacks an adequate emergency fund and/or depends on this portfolio for essential expenses. A more conservative implementation is warranted regardless of stated preference.';
+    else if (sc.cap <= 60) govWarning += 'Partial gaps in emergency reserves or income coverage suggest a moderated approach until the client\u2019s broader financial foundation is strengthened.';
+    govWarning += '</div>';
+  }
+
+  function vehicleTable(color, vehicles) {
+    if (vehicles.length === 0) return '';
+    return '<table class="report-table"><tr><th style="background:'+color+'">Vehicle</th><th style="background:'+color+';text-align:right;border-radius:0 6px 0 0">% of Portfolio</th></tr>' +
+      vehicles.map(v => '<tr><td>'+v.name+'</td><td class="pct-cell">'+v.pct+'%</td></tr>').join('') + '</table>';
+  }
+
+  function barRow(label, value, color) {
+    return '<div class="report-row"><span class="report-row-label">'+label+'</span><span class="report-row-value" style="color:'+color+'">'+value+'%</span></div><div class="report-bar-wrap"><div class="report-bar-track"><div class="report-bar-fill" style="width:'+value+'%;background:'+color+'"></div></div></div>';
+  }
+
+  const today = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  el.innerHTML =
+    '<div class="report">' +
+    '<div class="report-header"><span class="report-header-icon">\uD83D\uDCCB</span> Investment Advisor Report</div>' +
+    '<div style="font-size:10px;color:#8899aa;margin-bottom:2px;">'+today+' \u2014 Prepared for '+clientName+'</div>' +
+    '<div class="report-divider"></div>' +
+
+    '<div class="report-section"><div class="report-section-title">Client Profile Summary</div>' +
+    '<div class="report-row"><span class="report-row-label">Investment Objective</span><span class="report-row-value">'+profileLabel+'</span></div>' +
+    '<div class="report-row"><span class="report-row-label">Risk Posture</span><span class="report-row-value">'+riskLabel+' ('+aggPct+'%)</span></div>' +
+    '<div class="report-row"><span class="report-row-label">Triangle Coordinates</span><span class="report-row-value">'+gPct+'% Growth \u00B7 '+iPct+'% Income \u00B7 '+sPct+'% Safety</span></div></div>' +
+
+    '<div class="report-section"><div class="report-section-title">Recommended Asset Allocation</div>' +
+    barRow('Stocks', stocks, '#2a7d5f') +
+    barRow('Bonds', bonds, '#2a5d9f') +
+    barRow('Alternatives', alts, '#7a4fa0') +
+    barRow('Cash / Money Market', cash, '#9f8a2a') + '</div>' +
+
+    '<div class="report-section"><div class="report-section-title">Advisor Narrative</div><div class="report-narrative">'+narrative+'</div>'+govWarning+'</div>' +
+
+    '<div class="report-section"><div class="report-section-title">Equity Sleeve \u2014 '+stocks+'% of Portfolio</div>' +
+    '<div style="font-size:11px;color:#6b8299;margin-bottom:6px;">'+passivePct+'% passive / index \u2014 '+activePct+'% active / concentrated</div>' +
+    vehicleTable('#2a7d5f', eqVehicles) + '</div>' +
+
+    (bonds > 0 ? '<div class="report-section"><div class="report-section-title">Fixed Income Sleeve \u2014 '+bonds+'% of Portfolio</div>' + vehicleTable('#2a5d9f', bondVehicles) + '</div>' : '') +
+
+    (alts > 0 ? '<div class="report-section"><div class="report-section-title">Alternatives Sleeve \u2014 '+alts+'% of Portfolio</div>' + vehicleTable('#7a4fa0', altVehicles) + '</div>' : '') +
+
+    (cash > 0 ? '<div class="report-section"><div class="report-section-title">Cash / Money Market \u2014 '+cash+'% of Portfolio</div>' + vehicleTable('#9f8a2a', cashVehicles) + '</div>' : '') +
+
+    '<div class="report-callout"><strong>Disclaimer:</strong> This report is generated as a starting framework based on the client\u2019s questionnaire responses. It does not constitute a final investment recommendation. The advisor should review these suggestions in the context of the client\u2019s complete financial picture, tax situation, existing holdings, and any qualitative factors discussed during the intake meeting before implementing any portfolio changes.</div>' +
+    '</div>';
+}
+
+document.getElementById('clientName').addEventListener('input', function() {
+  const disp = document.getElementById('clientNameDisplay');
+  if (this.value.trim()) { disp.textContent = this.value.trim(); disp.style.display = 'block'; }
+  else { disp.style.display = 'none'; }
+  renderReport();
+});
+
+function renderAll() {
+  const sc = computeScores();
+  document.getElementById('progress').textContent = sc.totalAns+'/12 questions answered';
+  renderTabs();
+  renderQuestions();
+  renderTriangle();
+  renderGauge();
+  renderAllocation();
+  renderReport();
+}
+
+function resetAll() {
+  answers = {};
+  activeSection = 0;
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientNameDisplay').style.display = 'none';
+  renderAll();
+}
+
+// ===== LOCAL STORAGE SAVE / LOAD / EXPORT =====
+
+function buildProfileRecord() {
+  const sc = computeScores();
+  const clientName = document.getElementById('clientName').value.trim() || 'Anonymous';
+
+  const gPct = Math.round(sc.g * 100);
+  const iPct = Math.round(sc.i * 100);
+  const sPct = Math.round(sc.s * 100);
+  const aggPct = Math.round(sc.govAgg);
+
+  let profileLabel = '';
+  if (gPct >= 60) profileLabel = 'Growth-Oriented';
+  else if (iPct >= 60) profileLabel = 'Income-Oriented';
+  else if (sPct >= 60) profileLabel = 'Capital Preservation';
+  else if (gPct >= 40 && iPct >= 25) profileLabel = 'Growth & Income Blend';
+  else if (gPct >= 40 && sPct >= 25) profileLabel = 'Growth with Safety Cushion';
+  else if (iPct >= 40 && sPct >= 25) profileLabel = 'Income with Safety Cushion';
+  else profileLabel = 'Balanced';
+
+  let riskLabel = '';
+  if (aggPct <= 20) riskLabel = 'Conservative';
+  else if (aggPct <= 40) riskLabel = 'Moderately Conservative';
+  else if (aggPct <= 60) riskLabel = 'Moderate';
+  else if (aggPct <= 80) riskLabel = 'Moderately Aggressive';
+  else riskLabel = 'Aggressive';
+
+  const answerLetters = {};
+  const allQ = [...OBJECTIVE_QUESTIONS, ...RISK_QUESTIONS, ...GOVERNOR_QUESTIONS];
+  allQ.forEach(function(q) {
+    if (answers[q.num] !== undefined) {
+      answerLetters['q' + q.num] = q.options[answers[q.num]].letter;
+    }
+  });
+
+  return {
+    id: Date.now(),
+    savedAt: new Date().toISOString(),
+    clientName: clientName,
+    answers: answerLetters,
+    growthPct: gPct,
+    incomePct: iPct,
+    safetyPct: sPct,
+    rawAggressionPct: Math.round(sc.rawAgg),
+    governedAggressionPct: aggPct,
+    governorCapPct: sc.cap,
+    profileLabel: profileLabel,
+    riskLabel: riskLabel,
+    questionsAnswered: sc.totalAns
+  };
+}
+
+function saveToLocalStorage() {
+  const sc = computeScores();
+  const statusEl = document.getElementById('saveStatus');
+
+  if (sc.totalAns < 10) {
+    statusEl.textContent = 'Please answer at least 10 questions before saving.';
+    statusEl.className = 'save-status error';
+    return;
+  }
+
+  const record = buildProfileRecord();
+  const existing = JSON.parse(localStorage.getItem('finesseProfiles') || '[]');
+  existing.unshift(record);
+  localStorage.setItem('finesseProfiles', JSON.stringify(existing));
+
+  statusEl.textContent = 'Saved: ' + record.clientName + ' (' + new Date(record.savedAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) + ')';
+  statusEl.className = 'save-status';
+  renderSavedClients();
+}
+
+function exportCSV() {
+  const profiles = JSON.parse(localStorage.getItem('finesseProfiles') || '[]');
+  if (!profiles.length) {
+    alert('No saved profiles yet. Save at least one client profile first.');
+    return;
+  }
+
+  const headers = ['savedAt','clientName','profileLabel','riskLabel',
+    'growthPct','incomePct','safetyPct','rawAggressionPct','governedAggressionPct','governorCapPct','questionsAnswered',
+    'q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','q11','q12'];
+
+  const rows = profiles.map(function(p) {
+    return headers.map(function(h) {
+      if (h.match(/^q\d+$/)) return p.answers && p.answers[h] !== undefined ? p.answers[h] : '';
+      return p[h] !== undefined ? p[h] : '';
+    });
+  });
+
+  const csv = [headers].concat(rows).map(function(r) {
+    return r.map(function(v) {
+      const s = String(v);
+      return s.indexOf(',') !== -1 || s.indexOf('"') !== -1 ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(',');
+  }).join('\n');
+
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'finesse_profiles_' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function renderSavedClients() {
+  const listEl = document.getElementById('clientsList');
+  const profiles = JSON.parse(localStorage.getItem('finesseProfiles') || '[]');
+
+  if (!profiles.length) {
+    listEl.innerHTML = '<div class="clients-empty">No saved profiles yet. Complete the questionnaire and click Save Profile.</div>';
+    return;
+  }
+
+  listEl.innerHTML = profiles.map(function(p) {
+    const dateStr = new Date(p.savedAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+    return '<div class="client-row">' +
+      '<div class="client-row-name">' + (p.clientName || 'Anonymous') + '</div>' +
+      '<div class="client-row-meta">' +
+        dateStr + ' &mdash; ' + (p.profileLabel || '') + ' &mdash; ' + (p.riskLabel || '') +
+        ' &mdash; ' + (p.growthPct || 0) + '% G / ' + (p.incomePct || 0) + '% I / ' + (p.safetyPct || 0) + '% S' +
+        ' &mdash; Agg: ' + (p.governedAggressionPct || 0) + '%' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+renderAll();
+renderSavedClients();
+</script>
+</body>
+</html>

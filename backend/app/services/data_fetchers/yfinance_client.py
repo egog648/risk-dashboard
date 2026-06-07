@@ -37,6 +37,18 @@ YFINANCE_TICKERS: dict[str, str] = {
 _TIINGO_BASE = "https://api.tiingo.com/tiingo/daily"
 
 
+def validate_ticker_symbol(ticker: str, db: Session) -> bool:
+    """Return True if Tiingo can return price data for the symbol."""
+    symbol = ticker.strip().upper()
+    try:
+        start_date = datetime.utcnow() - timedelta(days=365 * 2)
+        series = _fetch_from_tiingo(symbol, start_date)
+        return not series.empty
+    except Exception as exc:
+        logger.warning("Ticker validation failed for %s: %s", symbol, exc)
+        return False
+
+
 def fetch_ticker(ticker: str, db: Session, lookback_years: int = 25) -> pd.Series:
     """Return adjusted close price series for a ticker via Tiingo."""
     start_date = datetime.utcnow() - timedelta(days=365 * lookback_years)

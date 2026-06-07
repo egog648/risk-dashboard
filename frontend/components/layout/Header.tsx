@@ -10,6 +10,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/hard-assets": "Hard Assets / Alts",
   "/cash": "Cash",
   "/portfolio": "Portfolio Optimizer",
+  "/tickers": "Vehicle Registry",
 };
 
 export function Header() {
@@ -29,9 +30,9 @@ export function Header() {
   }, []);
 
   return (
-    <header className="h-12 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-6 shrink-0">
-      <h2 className="text-sm font-semibold text-gray-200">{title}</h2>
-      <span className="text-xs text-gray-500">{dateStr}</span>
+    <header className="h-12 bg-white border-b border-ff-border flex items-center justify-between px-6 shrink-0">
+      <h2 className="text-sm font-semibold text-ff-navy">{title}</h2>
+      <span className="text-xs text-ff-muted">{dateStr}</span>
     </header>
   );
 }

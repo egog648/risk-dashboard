@@ -15,7 +15,7 @@ Fetch macro data from FRED and market proxy prices via a Tiingo-backed fetcher, 
 Free API, no rate limit issues for this use case (120 req/day default).
 Get your key: https://fred.stlouisfed.org/docs/api/api_key.html
 
-Key series used (see `docs/FRED_SERIES.md` for full list):
+Key series used (see `docs/reference/FRED_SERIES.md` for full list):
 - `DGS10` — 10-year Treasury yield
 - `VIXCLS` — VIX
 - `BAMLH0A0HYM2` — HY credit spread

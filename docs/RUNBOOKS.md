@@ -10,6 +10,8 @@ Operational guidance for local and containerized development environments.
 ## Test Suites (Phase 2)
 - Backend smoke + contracts:
   - `cd backend && pytest tests/test_api_smoke.py tests/test_api_contracts.py`
+- Ticker registry:
+  - `cd backend && pytest tests/test_ticker_registry.py`
 - Frontend integration tests:
   - `cd frontend && npm run test`
 - Frontend e2e happy path:

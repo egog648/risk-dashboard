@@ -2,26 +2,33 @@
 
 Build this project module by module in the order below. Each step has its own detailed instruction file in `docs/modules/`.
 
+**Documentation entry point:** [`docs/README.md`](README.md) | **Build rules:** [`docs/DOC_RULES.md`](DOC_RULES.md)
+
 ## Prerequisites
 
 - Docker Desktop installed and running
 - Node.js 20+ (for local frontend dev outside Docker)
 - Python 3.11+ (for local backend dev outside Docker)
 - A free FRED API key from https://fred.stlouisfed.org/docs/api/api_key.html
+- A free Tiingo API key from https://app.tiingo.com
+
+---
+
+# Part 1 — Risk Dashboard Foundation (Modules 01–09)
 
 ## Build Order
 
-| Step | Module | File |
-|------|--------|------|
-| 1 | Docker + env setup | `01_DOCKER_SETUP.md` |
-| 2 | Backend core (FastAPI, DB, config) | `02_BACKEND_CORE.md` |
-| 3 | Data layer (FRED, Tiingo-backed market proxy fetcher, SQLite cache) | `03_DATA_LAYER.md` |
-| 4 | Asset class modules | `04_ASSET_CLASSES.md` |
-| 5 | Risk engine (metrics, cycle, valuation) | `05_RISK_ENGINE.md` |
-| 6 | Frontend setup (Next.js, Tailwind, Shadcn) | `06_FRONTEND_SETUP.md` |
-| 7 | Dashboard components | `07_COMPONENTS.md` |
-| 8 | Portfolio optimizer (efficient frontier) | `08_PORTFOLIO_OPTIMIZER.md` |
-| 9 | Extending (add new sub-asset classes) | `09_EXTENDING.md` |
+| Step | Phase | Module | File |
+|------|-------|--------|------|
+| 1 | 1 | Docker + env setup | `01_DOCKER_SETUP.md` |
+| 2 | 1 | Backend core (FastAPI, DB, config) | `02_BACKEND_CORE.md` |
+| 3 | 1 | Data layer (FRED, Tiingo, SQLite cache) | `03_DATA_LAYER.md` |
+| 4 | 1 | Asset class modules | `04_ASSET_CLASSES.md` |
+| 5 | 1 | Risk engine (metrics, cycle, valuation) | `05_RISK_ENGINE.md` |
+| 6 | 1 | Frontend setup (Next.js, Tailwind) | `06_FRONTEND_SETUP.md` |
+| 7 | 1 | Dashboard components | `07_COMPONENTS.md` |
+| 8 | 1 | Portfolio optimizer (efficient frontier) | `08_PORTFOLIO_OPTIMIZER.md` |
+| 9 | 1 | Extending (add new sub-asset classes) | `09_EXTENDING.md` |
 
 ## Quick Start (after all modules are built)
 
@@ -81,13 +88,59 @@ start http://localhost:3000
 | `GET /api/v1/data-status` | Data freshness status |
 | `POST /api/v1/data-status/refresh` | Manual data refresh |
 | `GET /health` | Health check |
+| `GET /api/v1/tickers` | List custom ticker vehicles (Module 11) |
+| `POST /api/v1/tickers` | Create custom ticker (Tiingo-validated) |
+| `GET /api/v1/tickers/{id}` | Get single ticker |
+| `PUT /api/v1/tickers/{id}` | Update ticker |
+| `DELETE /api/v1/tickers/{id}` | Deactivate ticker |
+| `POST /api/v1/tickers/validate` | Validate symbol without saving |
 
 Full Swagger UI: http://localhost:8000/docs
 
+---
+
+# Part 2 — Finesse Funds Advisory Expansion (Modules 10–17)
+
+## Build Order
+
+| Step | Phase | Module | File | Status |
+|------|-------|--------|------|--------|
+| 10 | 2 | Finesse branding | `10_FINESSE_BRANDING.md` | Done |
+| 11 | 2 | Custom ticker registry | `11_TICKER_REGISTRY.md` | Done |
+| 12 | 2 | Investment profiler | `12_INVESTMENT_PROFILER.md` | Planned |
+| 13 | 2 | Profile → portfolio bridge | `13_PROFILE_TO_PORTFOLIO.md` | Planned |
+| 14 | 2 | Client workspace | `14_CLIENT_WORKSPACE.md` | Planned |
+| 15 | 2 | Advisor report + market callouts | `15_ADVISOR_REPORT.md` | Planned |
+| 16 | 2 | Vehicle recommendations | `16_VEHICLE_RECOMMENDATIONS.md` | Planned |
+| 17 | 2 | Advanced analytics | `17_ADVANCED_ANALYTICS.md` | Deferred |
+
+## Quick Start (after Module 11)
+
+```bash
+# 1. Ensure Part 1 app is running (see Quick Start above)
+
+# 2. Open ticker registry
+start http://localhost:3000/tickers
+
+# 3. Add a ticker via API (example)
+curl -X POST http://localhost:8000/api/v1/tickers \
+  -H "Content-Type: application/json" \
+  -d '{"ticker":"JEPI","display_name":"JPMorgan Equity Premium Income ETF","asset_class":"equities","primary_objective":"income","growth_pct":10,"income_pct":80,"safety_pct":10}'
+
+# 4. List tickers
+curl http://localhost:8000/api/v1/tickers
+
+# 5. Run ticker tests
+cd backend && pytest tests/test_ticker_registry.py
+```
+
 ## Handoff References
 
+- `docs/README.md`
+- `docs/DOC_RULES.md`
 - `docs/ARCHITECTURE.md`
 - `docs/HANDOFF_CHECKLIST.md`
 - `docs/RUNBOOKS.md`
 - `docs/KNOWN_GAPS.md`
 - `docs/ROADMAP.md`
+- `docs/sessions/HANDOFF_NOTE.md`

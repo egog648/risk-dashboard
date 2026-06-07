@@ -42,7 +42,9 @@ A macro risk dashboard that calculates forward-looking risk and expected returns
 
 ## Handoff Docs
 
-For project continuation and new-chat onboarding:
+Start at **`docs/README.md`**, then as needed:
+- `docs/BUILD.md` — build index (Phase 1 + Phase 2)
+- `docs/DOC_RULES.md` — doc and agent rules
 - `docs/ARCHITECTURE.md`
 - `docs/HANDOFF_CHECKLIST.md`
 - `docs/RUNBOOKS.md`
@@ -52,4 +54,4 @@ For project continuation and new-chat onboarding:
 ## Build Guide
 
 See `docs/BUILD.md` for the complete ordered build guide.
-Each module has its own instruction file in `docs/modules/`.
+Phase 1 modules: `docs/modules/01–09`. Phase 2 (Finesse advisory): `docs/modules/10–17`.

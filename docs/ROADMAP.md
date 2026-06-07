@@ -76,10 +76,32 @@ Goal: make runtime and methodology resilient enough for more serious deployment/
 - Stable API contracts and tests from Phases 1 and 2.
 - Deployment target decision (local-only vs hosted environment).
 
+## Phase 4 — Advisory Practice Tools
+Goal: systematize client portfolio building with Finesse Funds profiler, custom ticker registry, and advisor workflow.
+
+### Progress Snapshot
+- Completed: documentation reorg (`docs/README.md`, `docs/DOC_RULES.md`, `docs/sessions/`).
+- Completed: Module 10 Finesse branding (design tokens, shared UI).
+- Completed: Module 11 custom ticker registry (CRUD API, `/tickers` page, tests).
+- Planned: Modules 12–16 (profiler, mapping, clients, report, recommendations).
+- Deferred: Module 17 advanced analytics.
+
+### Module Map
+See `docs/BUILD.md` Part 2 (Modules 10–17).
+
+### Exit Criteria
+- Advisor can classify custom tickers (G/I/S) and manage a vehicle library.
+- Client questionnaire produces portfolio weights analyzed against live market data.
+- Advisor report combines profile, optimizer output, and market callouts.
+
+### Dependencies
+- Phase 1–2 stable foundation.
+- Tiingo API for ticker validation.
+
 ## Ongoing Workstream: Documentation Hygiene
-- Keep `README.md`, `docs/BUILD.md`, and module docs synchronized with code changes.
-- Update `docs/KNOWN_GAPS.md` for every confirmed gap/fix.
-- Require a handoff note and next explicit priority for each major work session.
+- Start at `docs/README.md` and follow `docs/DOC_RULES.md`.
+- Keep `docs/BUILD.md` and active module doc synchronized with code.
+- Append session notes to `docs/sessions/HANDOFF_NOTE.md`.
 
 ## Related Docs
 - `docs/ARCHITECTURE.md`

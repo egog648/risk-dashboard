@@ -119,3 +119,65 @@ class DataStatusResponse(BaseModel):
     series: list[SeriesStatus]
     overall_status: Literal["ok", "stale", "error"]
     as_of: datetime
+
+
+# --- Custom ticker registry ---
+
+AssetClassKind = Literal["equities", "credit", "hard_assets", "cash"]
+ObjectiveKind = Literal["growth", "income", "safety"]
+
+
+class CustomTickerBase(BaseModel):
+    ticker: str = Field(..., min_length=1, max_length=16)
+    display_name: str = Field(..., min_length=1, max_length=256)
+    asset_class: AssetClassKind
+    primary_objective: ObjectiveKind
+    growth_pct: float | None = None
+    income_pct: float | None = None
+    safety_pct: float | None = None
+    notes: str | None = None
+    risk_proxy_ticker: str | None = None
+
+
+class CustomTickerCreate(CustomTickerBase):
+    pass
+
+
+class CustomTickerUpdate(BaseModel):
+    display_name: str | None = None
+    asset_class: AssetClassKind | None = None
+    primary_objective: ObjectiveKind | None = None
+    growth_pct: float | None = None
+    income_pct: float | None = None
+    safety_pct: float | None = None
+    notes: str | None = None
+    risk_proxy_ticker: str | None = None
+    is_active: bool | None = None
+
+
+class CustomTickerResponse(BaseModel):
+    id: int
+    ticker: str
+    display_name: str
+    asset_class: AssetClassKind
+    primary_objective: ObjectiveKind
+    growth_pct: float
+    income_pct: float
+    safety_pct: float
+    notes: str | None
+    risk_proxy_ticker: str | None
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class TickerValidateRequest(BaseModel):
+    ticker: str = Field(..., min_length=1, max_length=16)
+
+
+class TickerValidateResponse(BaseModel):
+    ticker: str
+    valid: bool
+    message: str | None = None

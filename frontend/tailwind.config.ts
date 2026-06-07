@@ -10,6 +10,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        "ff-navy": "#1a3a5c",
+        "ff-green": "#2a7d5f",
+        "ff-blue": "#2a5d9f",
+        "ff-gold": "#9f8a2a",
+        "ff-bg": "#f0f4f8",
+        "ff-muted": "#8899aa",
+        "ff-border": "#e0e8f0",
         // Risk color scale
         "risk-low": "#22c55e",      // green-500
         "risk-medium": "#eab308",   // yellow-500

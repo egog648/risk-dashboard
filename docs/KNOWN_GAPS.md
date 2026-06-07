@@ -50,9 +50,24 @@ This file tracks confirmed limitations and unresolved risks that matter for road
 ### 6) Documentation drift risk
 - Severity: Medium
 - Impact: Setup confusion and onboarding delay when docs diverge from implementation.
-- Current workaround: Cross-check docs with code during handoff.
-- Planned fix: Keep docs update as part of definition-of-done and release checklist.
+- Status: Mitigated (Phase 4 doc reorg)
+- Resolution: Added `docs/README.md` entry point, `docs/DOC_RULES.md`, and unified `BUILD.md` Part 2 index.
 - Roadmap phase: Ongoing
+
+### 7) Static vehicle suggestions in HTML profiler
+- Severity: Medium
+- Impact: Profiler hardcodes ETF names (VTI, JEPI, etc.) without advisor-controlled registry or live validation.
+- Current workaround: Use standalone HTML profiler for intake; manually pick vehicles.
+- Planned fix: Module 11 ticker registry (done) + Module 16 vehicle recommendations.
+- Progress: Custom ticker CRUD and `/tickers` page implemented (Module 11).
+- Roadmap phase: Phase 4
+
+### 8) Custom tickers excluded from efficient frontier
+- Severity: Low
+- Impact: Registry tickers (JEPI) cannot yet be optimized on the frontier curve.
+- Current workaround: Use macro proxy tickers (SPY, LQD) for optimization; registry for implementation mapping.
+- Planned fix: Dynamic `ASSET_TICKERS` from registry (v2).
+- Roadmap phase: Phase 4 / deferred
 
 ## Update Policy
 - Add new gaps when a bug or limitation is confirmed.
@@ -60,6 +75,5 @@ This file tracks confirmed limitations and unresolved risks that matter for road
 - Remove only after fix is merged and validated by smoke tests.
 
 ## Related Docs
+- `docs/README.md`
 - `docs/ROADMAP.md`
-- `docs/ARCHITECTURE.md`
-- `docs/HANDOFF_CHECKLIST.md`

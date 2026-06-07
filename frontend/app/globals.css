@@ -1,14 +1,26 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
+    --background: 210 33% 96%;
+    --foreground: 210 55% 24%;
+    --ff-navy: #1a3a5c;
+    --ff-green: #2a7d5f;
+    --ff-blue: #2a5d9f;
+    --ff-gold: #9f8a2a;
+    --ff-bg: #f0f4f8;
+    --ff-card-border: #e0e8f0;
+    --ff-muted: #8899aa;
   }
 }
 
 body {
   @apply antialiased;
+  font-family: "DM Sans", sans-serif;
+  background-color: var(--ff-bg);
+  color: #333;
 }

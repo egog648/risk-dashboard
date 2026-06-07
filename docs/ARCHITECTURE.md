@@ -52,6 +52,7 @@ flowchart LR
   - `backend/app/api/v1/endpoints/cash.py`
   - `backend/app/api/v1/endpoints/portfolio.py`
   - `backend/app/api/v1/endpoints/data_status.py`
+  - `backend/app/api/v1/endpoints/tickers.py`
 - Shared schemas: `backend/app/models/schemas.py`
 - Data fetch/cache layer: `backend/app/services/data_fetchers/`
 - Risk engine: `backend/app/services/risk/`
@@ -65,6 +66,42 @@ flowchart LR
   - Dashboard cards/charts: `frontend/components/dashboard/`, `frontend/components/charts/`
   - Portfolio UI: `frontend/components/portfolio/`
   - Layout/nav/status: `frontend/components/layout/`
+  - Finesse practice UI: `frontend/components/finesse/`
+
+## Advisory Practice (Phase 2)
+
+Finesse Funds extends the macro dashboard into a client portfolio workflow:
+
+```mermaid
+flowchart LR
+  subgraph discover [Discover]
+    Profiler[InvestmentProfiler]
+  end
+  subgraph design [Design]
+    Mapper[ProfileToPortfolioMapper]
+    Optimizer[EfficientFrontier]
+    Registry[TickerRegistry]
+  end
+  subgraph defend [Defend]
+    Report[AdvisorReport]
+    Vehicles[VehicleRecommendations]
+  end
+  Profiler --> Mapper
+  Mapper --> Optimizer
+  Registry --> Vehicles
+  Optimizer --> Report
+  Vehicles --> Report
+  MarketData[RiskDashboardDataLayer] --> Optimizer
+  MarketData --> Report
+```
+
+**Discover:** 12-question profiler (Growth / Income / Safety triangle + aggression dial + governor cap).
+
+**Design:** Map profile to `PortfolioWeights`, analyze with live market assumptions; custom tickers (e.g. JEPI) stored in `custom_tickers` with primary objective + optional G/I/S weights.
+
+**Defend:** Advisor report with allocation rationale, vehicle suggestions, and market callouts.
+
+Key insight: **objective orientation** (G/I/S) and **risk tolerance** (aggression) are separate — a client may tolerate equity volatility but prioritize income (JEPI-style vehicles).
 
 ## Operational Assumptions (Current)
 - Keys required for meaningful data: `FRED_API_KEY`, `TIINGO_API_KEY`.
@@ -73,11 +110,13 @@ flowchart LR
 - SQLite is sufficient for local/prototype usage; multi-instance production use needs stronger persistence strategy.
 
 ## Known Design Risks
-- Some portfolio weight naming is inconsistent between frontend payload shape and backend schema.
-- Empty data handling is not consistently defensive across all asset services.
-- Expected return inputs include some hardcoded assumptions that should eventually be replaced with sourced inputs.
+- Dev-oriented Docker/runtime defaults (see `KNOWN_GAPS.md` #3).
+- Expected return inputs include hardcoded assumptions (see `KNOWN_GAPS.md` #5).
+- Custom tickers are not yet in the efficient frontier optimizer (registry is for vehicles/recommendations v1).
 
 ## See Also
+- Documentation entry: `docs/README.md`
+- Build rules: `docs/DOC_RULES.md`
 - Build sequence: `docs/BUILD.md`
 - Setup details: `docs/modules/01_DOCKER_SETUP.md`
 - Quant methodology: `docs/METHODOLOGY.md`

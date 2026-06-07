@@ -5,10 +5,13 @@ Use this checklist when handing the project to a new chat or contributor.
 ## 1) Context Package
 - Read in order:
   1. `README.md`
-  2. `docs/BUILD.md`
-  3. `docs/ARCHITECTURE.md`
-  4. `docs/ROADMAP.md`
-  5. `docs/KNOWN_GAPS.md`
+  2. `docs/README.md`
+  3. `docs/DOC_RULES.md`
+  4. `docs/BUILD.md` (identify current module)
+  5. `docs/ARCHITECTURE.md`
+  6. `docs/ROADMAP.md`
+  7. `docs/KNOWN_GAPS.md`
+  8. Latest section in `docs/sessions/HANDOFF_NOTE.md`
 - Confirm current objective for the incoming owner (bug fix, feature build, hardening, docs-only).
 
 ## 2) Environment Setup
