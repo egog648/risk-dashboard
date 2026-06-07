@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import type { AssetClassMetrics } from "@/types/assets";
 import { fmtSubClass } from "@/lib/utils/formatters";
+import { CHART_THEME, rechartsAxisTick, rechartsTooltipProps } from "@/lib/utils/chartTheme";
 
 const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#a855f7", "#f97316", "#06b6d4"];
 
@@ -24,7 +25,7 @@ interface CycleChartProps {
  */
 export function CycleChart({ assets }: CycleChartProps) {
   if (!assets.length || !assets[0].history?.length) {
-    return <div className="text-gray-500 text-sm">No history data available.</div>;
+    return <div className="text-ff-muted text-sm">No history data available.</div>;
   }
 
   // Collect all dates across assets
@@ -74,33 +75,22 @@ export function CycleChart({ assets }: CycleChartProps) {
     <div className="w-full h-56">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={thinned} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} />
           <XAxis
             dataKey="date"
-            tick={{ fill: "#9ca3af", fontSize: 10 }}
+            tick={rechartsAxisTick(10)}
             tickFormatter={(v) => v.substring(0, 7)}
             interval="preserveStartEnd"
-            stroke="#6b7280"
+            stroke={CHART_THEME.axis}
           />
           <YAxis
-            tick={{ fill: "#9ca3af", fontSize: 10 }}
-            stroke="#6b7280"
+            tick={rechartsAxisTick(10)}
+            stroke={CHART_THEME.axis}
             tickFormatter={(v) => `${v}`}
             domain={["auto", "auto"]}
           />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "#1f2937",
-              border: "1px solid #374151",
-              borderRadius: "8px",
-              fontSize: "11px",
-            }}
-            labelStyle={{ color: "#9ca3af" }}
-            itemStyle={{ color: "#e5e7eb" }}
-          />
-          <Legend
-            wrapperStyle={{ fontSize: "11px", color: "#9ca3af" }}
-          />
+          <Tooltip {...rechartsTooltipProps()} />
+          <Legend wrapperStyle={CHART_THEME.legend} />
           {assetKeys.map((key, i) => (
             <Line
               key={key}

@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { fetchYieldCurve } from "@/lib/api/credit";
+import { CHART_THEME, rechartsAxisTick, rechartsTooltipProps } from "@/lib/utils/chartTheme";
 
 export function YieldCurveChart() {
   const [mounted, setMounted] = useState(false);
@@ -25,7 +26,7 @@ export function YieldCurveChart() {
 
   if (!mounted || isLoading) {
     return (
-      <div className="h-40 flex items-center justify-center text-gray-500 text-sm">
+      <div className="h-40 flex items-center justify-center text-ff-muted text-sm">
         Loading yield curve...
       </div>
     );
@@ -33,7 +34,7 @@ export function YieldCurveChart() {
 
   if (isError || !data?.points?.length) {
     return (
-      <div className="h-40 flex items-center justify-center text-gray-500 text-sm">
+      <div className="h-40 flex items-center justify-center text-ff-muted text-sm">
         Yield curve data unavailable
       </div>
     );
@@ -41,39 +42,41 @@ export function YieldCurveChart() {
 
   const chartData = data.points.map((p) => ({
     tenor: p.tenor,
-    yield: p.yield_pct,
+    yieldPct: p.yield_pct,
   }));
 
-  const yMin = Math.floor(Math.min(...chartData.map((d) => d.yield)) * 10) / 10 - 0.1;
-  const yMax = Math.ceil(Math.max(...chartData.map((d) => d.yield)) * 10) / 10 + 0.1;
+  const yMin = Math.floor(Math.min(...chartData.map((d) => d.yieldPct)) * 10) / 10 - 0.1;
+  const yMax = Math.ceil(Math.max(...chartData.map((d) => d.yieldPct)) * 10) / 10 + 0.1;
 
   return (
     <div className="w-full">
       <ResponsiveContainer width="100%" height={160}>
         <LineChart data={chartData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} />
           <XAxis
             dataKey="tenor"
-            tick={{ fontSize: 11, fill: "#9ca3af" }}
-            axisLine={{ stroke: "#4b5563" }}
+            tick={rechartsAxisTick(11)}
+            axisLine={{ stroke: CHART_THEME.axis }}
             tickLine={false}
           />
           <YAxis
             domain={[yMin, yMax]}
             tickFormatter={(v) => `${v.toFixed(1)}%`}
-            tick={{ fontSize: 11, fill: "#9ca3af" }}
+            tick={rechartsAxisTick(11)}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip
-            contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: 6 }}
-            labelStyle={{ color: "#e5e7eb", fontSize: 12 }}
-            itemStyle={{ color: "#60a5fa", fontSize: 12 }}
-            formatter={(value: number) => [`${value.toFixed(3)}%`, "Yield"]}
+            {...rechartsTooltipProps()}
+            itemStyle={{ color: "#2a5d9f", fontSize: 12 }}
+            formatter={(value) => {
+              const num = typeof value === "number" ? value : Number(value);
+              return [`${Number.isFinite(num) ? num.toFixed(3) : "—"}%`, "Yield"];
+            }}
           />
           <Line
             type="monotone"
-            dataKey="yield"
+            dataKey="yieldPct"
             stroke="#60a5fa"
             strokeWidth={2}
             dot={{ fill: "#60a5fa", r: 4 }}
@@ -81,7 +84,7 @@ export function YieldCurveChart() {
           />
         </LineChart>
       </ResponsiveContainer>
-      <p className="text-xs text-gray-600 mt-1 text-right">
+      <p className="text-xs text-ff-text-secondary mt-1 text-right">
         Source: FRED · as of {new Date(data.as_of).toLocaleDateString()}
       </p>
     </div>

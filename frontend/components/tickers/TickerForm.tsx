@@ -118,7 +118,7 @@ export function TickerForm() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold border-[1.5px] transition-colors ${
                     form.primary_objective === o.value
                       ? "border-ff-navy bg-[#eaf1f8] text-ff-navy"
-                      : "border-ff-border bg-white text-gray-600 hover:border-[#a0b4c8]"
+                      : "border-ff-border bg-white text-ff-text-secondary hover:border-[#a0b4c8]"
                   }`}
                 >
                   {o.label}

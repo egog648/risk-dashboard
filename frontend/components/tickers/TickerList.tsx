@@ -75,7 +75,7 @@ export function TickerList() {
                   <span className="font-extrabold text-ff-navy">{t.ticker}</span>
                   <ObjectiveBadge objective={t.primary_objective as ObjectiveKind} />
                 </div>
-                <p className="text-xs text-gray-600 mt-0.5">{t.display_name}</p>
+                <p className="text-xs text-ff-text-secondary mt-0.5">{t.display_name}</p>
                 <p className="text-[10px] text-ff-muted mt-1">
                   {assetLabel(t.asset_class as AssetClassKind)}
                 </p>
@@ -84,7 +84,7 @@ export function TickerList() {
                 type="button"
                 onClick={() => deactivate.mutate(t.id)}
                 disabled={deactivate.isPending}
-                className="text-[10px] font-semibold text-gray-400 hover:text-red-600 shrink-0"
+                className="text-[10px] font-semibold text-ff-muted hover:text-red-600 shrink-0"
               >
                 Remove
               </button>

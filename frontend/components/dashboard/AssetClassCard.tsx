@@ -13,14 +13,14 @@ export function AssetClassCard({ data }: AssetClassCardProps) {
   const m = data.metrics;
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-3">
+    <div className="bg-white border border-ff-border rounded-[14px] p-4 flex flex-col gap-3 shadow-[0_2px_12px_rgba(26,58,92,0.08)]">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs text-gray-500 uppercase tracking-wider">
+          <p className="text-xs text-ff-muted uppercase tracking-wider">
             {data.asset_class.replace("_", " ")}
           </p>
-          <h3 className="text-base font-semibold text-white leading-tight">
+          <h3 className="text-base font-semibold text-ff-navy leading-tight">
             {fmtSubClass(data.sub_class)}
           </h3>
         </div>
@@ -45,15 +45,15 @@ export function AssetClassCard({ data }: AssetClassCardProps) {
       {/* Valuation bar */}
       {m.valuation_score != null && (
         <div>
-          <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <div className="flex justify-between text-xs text-ff-muted mb-1">
             <span>Cheap</span>
-            <span className="text-gray-300">
+            <span className="text-ff-navy">
               Valuation: {m.valuation_score > 0 ? "+" : ""}
               {m.valuation_score.toFixed(2)}σ
             </span>
             <span>Expensive</span>
           </div>
-          <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-[#e8edf2] rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all"
               style={{
@@ -76,8 +76,8 @@ export function AssetClassCard({ data }: AssetClassCardProps) {
 function MetricRow({ label, value }: { label: string; value: string }) {
   return (
     <>
-      <span className="text-gray-500">{label}</span>
-      <span className="text-gray-200 text-right font-mono">{value}</span>
+      <span className="text-ff-muted">{label}</span>
+      <span className="text-ff-navy text-right font-mono">{value}</span>
     </>
   );
 }

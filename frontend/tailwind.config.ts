@@ -15,7 +15,9 @@ const config: Config = {
         "ff-blue": "#2a5d9f",
         "ff-gold": "#9f8a2a",
         "ff-bg": "#f0f4f8",
-        "ff-muted": "#8899aa",
+        "ff-muted": "#6b8299",
+        "ff-text": "#333333",
+        "ff-text-secondary": "#4a5568",
         "ff-border": "#e0e8f0",
         // Risk color scale
         "risk-low": "#22c55e",      // green-500

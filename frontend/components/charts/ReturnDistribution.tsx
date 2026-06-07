@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import type { AssetClassMetrics } from "@/types/assets";
 import { fmtSubClass } from "@/lib/utils/formatters";
+import { CHART_THEME, rechartsAxisTick, rechartsTooltipProps } from "@/lib/utils/chartTheme";
 
 const COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#a855f7", "#f97316"];
 
@@ -45,27 +46,22 @@ export function ReturnDistribution({ assets }: ReturnDistributionProps) {
     <div className="w-full h-56">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} />
           <XAxis
             dataKey="metric"
-            tick={{ fill: "#9ca3af", fontSize: 11 }}
-            stroke="#6b7280"
+            tick={rechartsAxisTick(11)}
+            stroke={CHART_THEME.axis}
           />
           <YAxis
-            tick={{ fill: "#9ca3af", fontSize: 10 }}
-            stroke="#6b7280"
+            tick={rechartsAxisTick(10)}
+            stroke={CHART_THEME.axis}
             tickFormatter={(v) => `${v}%`}
           />
           <Tooltip
-            contentStyle={{
-              backgroundColor: "#1f2937",
-              border: "1px solid #374151",
-              borderRadius: "8px",
-              fontSize: "11px",
-            }}
+            {...rechartsTooltipProps()}
             formatter={(val: number) => [`${val.toFixed(2)}%`]}
           />
-          <Legend wrapperStyle={{ fontSize: "11px", color: "#9ca3af" }} />
+          <Legend wrapperStyle={CHART_THEME.legend} />
           {assetKeys.map((key, i) => (
             <Bar key={key} dataKey={key} fill={COLORS[i % COLORS.length]} radius={2} />
           ))}

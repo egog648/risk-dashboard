@@ -27,17 +27,17 @@ export default function OverviewPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">Market Risk Overview</h1>
-        <p className="text-gray-400 mt-1 text-sm">
+        <h1 className="text-2xl font-bold text-ff-navy">Market Risk Overview</h1>
+        <p className="text-ff-text-secondary mt-1 text-sm">
           Forward-looking risk and expected return across major asset classes
         </p>
       </div>
 
       {sections.map(({ label, result }) => (
         <section key={label}>
-          <h2 className="text-lg font-semibold text-gray-200 mb-3">{label}</h2>
+          <h2 className="text-lg font-semibold text-ff-navy mb-3">{label}</h2>
           {result.isLoading && (
-            <div className="text-gray-500 text-sm">Loading {label}...</div>
+            <div className="text-ff-muted text-sm">Loading {label}...</div>
           )}
           {result.isError && (
             <div className="text-red-400 text-sm">

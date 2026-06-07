@@ -1,7 +1,7 @@
 "use client";
 
 import type { FrontierPoint } from "@/types/portfolio";
-import { fmtPct, fmtNum, fmtSubClass } from "@/lib/utils/formatters";
+import { fmtPct, fmtNum } from "@/lib/utils/formatters";
 
 interface FrontierControlsProps {
   maxSharpe: FrontierPoint | null;
@@ -24,7 +24,7 @@ export function FrontierControls({ maxSharpe, minVol, current }: FrontierControl
       {portfolios.map(({ label, color, data }) => (
         <div
           key={label}
-          className="bg-gray-800 rounded-lg p-3 border"
+          className="bg-[#f6f9fc] rounded-lg p-3 border border-ff-border"
           style={{ borderColor: color + "40" }}
         >
           <div
@@ -36,26 +36,26 @@ export function FrontierControls({ maxSharpe, minVol, current }: FrontierControl
           {data ? (
             <div className="space-y-1 text-xs">
               <div className="flex justify-between">
-                <span className="text-gray-500">Return</span>
-                <span className="text-gray-200 font-mono">
+                <span className="text-ff-muted">Return</span>
+                <span className="text-ff-navy font-mono">
                   {fmtPct(data.expected_return)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Volatility</span>
-                <span className="text-gray-200 font-mono">
+                <span className="text-ff-muted">Volatility</span>
+                <span className="text-ff-navy font-mono">
                   {fmtPct(data.volatility)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Sharpe</span>
-                <span className="text-gray-200 font-mono">
+                <span className="text-ff-muted">Sharpe</span>
+                <span className="text-ff-navy font-mono">
                   {fmtNum(data.sharpe)}
                 </span>
               </div>
             </div>
           ) : (
-            <div className="text-gray-600 text-xs">Not available</div>
+            <div className="text-ff-muted text-xs">Not available</div>
           )}
         </div>
       ))}

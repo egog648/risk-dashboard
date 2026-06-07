@@ -34,11 +34,11 @@ export function DataStatusBar() {
   };
 
   return (
-    <div className="h-6 bg-gray-950 border-b border-gray-800 flex items-center px-6 gap-2 shrink-0">
+    <div className="h-6 bg-white border-b border-ff-border flex items-center px-6 gap-2 shrink-0">
       <span
         className={`w-1.5 h-1.5 rounded-full ${statusColors[data.overall_status]}`}
       />
-      <span className="text-xs text-gray-500">
+      <span className="text-xs text-ff-muted">
         {statusLabels[data.overall_status]} · as of{" "}
         {new Date(data.as_of).toLocaleTimeString()}
       </span>

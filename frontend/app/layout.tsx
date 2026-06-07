@@ -27,7 +27,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className="bg-ff-bg text-gray-800 min-h-screen">
+      <body className="bg-ff-bg text-ff-text min-h-screen">
         <QueryClientProvider client={queryClient}>
           <div className="flex h-screen overflow-hidden">
             <Sidebar />

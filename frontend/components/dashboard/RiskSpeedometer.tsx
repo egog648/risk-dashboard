@@ -77,7 +77,7 @@ export function RiskSpeedometer({ score, size = 180 }: RiskSpeedometerProps) {
           >
             {clampedScore.toFixed(0)}
           </span>
-          <span className="text-xs text-gray-400 block">
+          <span className="text-xs text-ff-muted block">
             {riskScoreToLabel(clampedScore)} Risk
           </span>
         </div>
