@@ -7,7 +7,6 @@ import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { DataStatusBar } from "@/components/layout/DataStatusBar";
-
 export default function RootLayout({
   children,
 }: {

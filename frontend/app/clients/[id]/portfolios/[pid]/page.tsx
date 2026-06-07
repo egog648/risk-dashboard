@@ -81,13 +81,12 @@ export default function PortfolioDetailPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="mb-4">
-        <Link href={`/clients/${clientId}`} className="text-xs text-ff-muted hover:text-ff-navy">
-          ← Back to {client.name}
-        </Link>
-      </div>
-
-      <FinesseHeader title={portfolio.name} subtitle={`Portfolio under ${client.name}`} />
+      <FinesseHeader
+        backHref={`/clients/${clientId}`}
+        backLabel={`Back to ${client.name}`}
+        title={portfolio.name}
+        subtitle={`Portfolio under ${client.name}`}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <FinesseCard title="Effective Profile" padding="lg">

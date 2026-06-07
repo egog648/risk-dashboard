@@ -27,6 +27,8 @@ backend/data/*.db-wal
 node_modules/
 .next/
 out/
+frontend/test-results/
+playwright-report/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

@@ -2,21 +2,52 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  type LucideIcon,
+  TrendingUp,
+  Landmark,
+  Building2,
+  Banknote,
+  Scale,
+  User,
+  ClipboardPen,
+  List,
+} from "lucide-react";
 
-const MACRO_NAV = [
-  { href: "/", label: "Overview", icon: "⬡" },
-  { href: "/equities", label: "Equities", icon: "📈" },
-  { href: "/credit", label: "Credit", icon: "🏦" },
-  { href: "/hard-assets", label: "Hard Assets", icon: "🏗️" },
-  { href: "/cash", label: "Cash", icon: "💵" },
-  { href: "/portfolio", label: "Portfolio", icon: "⚖️" },
+type NavIconType = LucideIcon | "overview";
+
+type NavItem = {
+  href: string;
+  label: string;
+  icon: NavIconType;
+};
+
+const MACRO_NAV: NavItem[] = [
+  { href: "/", label: "Overview", icon: "overview" },
+  { href: "/equities", label: "Equities", icon: TrendingUp },
+  { href: "/credit", label: "Credit", icon: Landmark },
+  { href: "/hard-assets", label: "Hard Assets", icon: Building2 },
+  { href: "/cash", label: "Cash", icon: Banknote },
+  { href: "/portfolio", label: "Portfolio", icon: Scale },
 ];
 
-const PRACTICE_NAV = [
-  { href: "/clients", label: "Clients", icon: "👤" },
-  { href: "/profiler", label: "Profiler", icon: "📝" },
-  { href: "/tickers", label: "Tickers", icon: "📋" },
+const PRACTICE_NAV: NavItem[] = [
+  { href: "/clients", label: "Clients", icon: User },
+  { href: "/profiler", label: "Profiler", icon: ClipboardPen },
+  { href: "/tickers", label: "Tickers", icon: List },
 ];
+
+function NavIcon({ icon }: { icon: NavIconType }) {
+  if (icon === "overview") {
+    return (
+      <span className="w-4 h-4 flex items-center justify-center text-base leading-none">
+        ⬡
+      </span>
+    );
+  }
+  const Icon = icon;
+  return <Icon className="w-4 h-4 shrink-0" strokeWidth={1.75} aria-hidden />;
+}
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -47,7 +78,7 @@ export function Sidebar() {
         </p>
         {MACRO_NAV.map(({ href, label, icon }) => (
           <Link key={href} href={href} className={linkClass(href)}>
-            <span className="text-base">{icon}</span>
+            <NavIcon icon={icon} />
             {label}
           </Link>
         ))}
@@ -57,7 +88,7 @@ export function Sidebar() {
         </p>
         {PRACTICE_NAV.map(({ href, label, icon }) => (
           <Link key={href} href={href} className={linkClass(href)}>
-            <span className="text-base">{icon}</span>
+            <NavIcon icon={icon} />
             {label}
           </Link>
         ))}

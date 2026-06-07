@@ -17,7 +17,6 @@ import {
 import { exportProfilesCSV } from "@/components/profiler/ImportProfilesButton";
 import { buildProfilePayload } from "@/lib/profiler/buildProfilePayload";
 import { lettersToAnswers, type ProfilerAnswers } from "@/lib/profiler/questions";
-
 export default function ClientDetailPage() {
   const params = useParams();
   const clientId = Number(params.id);
@@ -66,13 +65,12 @@ export default function ClientDetailPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="mb-4">
-        <Link href="/clients" className="text-xs text-ff-muted hover:text-ff-navy">
-          ← Back to Clients
-        </Link>
-      </div>
-
-      <FinesseHeader title={client.name} subtitle="Client workspace" />
+      <FinesseHeader
+        backHref="/clients"
+        backLabel="Back to Clients"
+        title={client.name}
+        subtitle="Client workspace"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <FinesseCard title="Default Profile" padding="lg">
