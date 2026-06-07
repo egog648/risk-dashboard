@@ -53,7 +53,8 @@ export function Sidebar() {
   const pathname = usePathname();
 
   const linkClass = (href: string) => {
-    const isActive = pathname === href;
+    const isActive =
+      pathname === href || (href === "/profiler" && pathname.startsWith("/profiler"));
     return `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
       isActive
         ? "bg-[#2a5d8f] text-white"

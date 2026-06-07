@@ -6,7 +6,7 @@ import { useState } from "react";
 import { FinesseHeader } from "@/components/finesse/FinesseHeader";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
 import { ObjectiveBar, OBJECTIVE_COLORS } from "@/components/finesse/ObjectiveBar";
-import { ProfilerWizard } from "@/components/profiler/ProfilerWizard";
+import { EmbeddedProfiler } from "@/components/profiler/EmbeddedProfiler";
 import { SendToOptimizerButton } from "@/components/profiler/SendToOptimizerButton";
 import {
   useClient,
@@ -197,21 +197,18 @@ export default function PortfolioDetailPage() {
       </div>
 
       {showProfiler && (
-        <div className="mb-8 -mx-6">
-          <ProfilerWizard
-            key={`portfolio-profiler-${effectiveProfile?.id ?? "new"}-${showProfiler}`}
-            clientName={client.name}
-            initialAnswers={answers}
-            onAnswersChange={setAnswers}
-            showClientInput={false}
-            showSaveButton
-            onSave={handleSaveOverride}
-            saveLabel="Save Portfolio Override"
-            saveDisabled={savePortfolioProfile.isPending}
-            saveStatus={saveStatus}
-            saveError={saveError}
-          />
-        </div>
+        <EmbeddedProfiler
+          key={`portfolio-profiler-${effectiveProfile?.id ?? "new"}-${showProfiler}`}
+          clientName={client.name}
+          answers={answers}
+          onAnswersChange={setAnswers}
+          onSave={handleSaveOverride}
+          saveLabel="Save Portfolio Override"
+          saveDisabled={savePortfolioProfile.isPending}
+          isSaving={savePortfolioProfile.isPending}
+          saveStatus={saveStatus}
+          saveError={saveError}
+        />
       )}
 
       {latestOutline && (

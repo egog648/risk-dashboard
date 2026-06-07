@@ -5,8 +5,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { FinesseHeader } from "@/components/finesse/FinesseHeader";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
-import { ProfilerWizard } from "@/components/profiler/ProfilerWizard";
-import { SaveProfileBar } from "@/components/profiler/SaveProfileBar";
+import { EmbeddedProfiler } from "@/components/profiler/EmbeddedProfiler";
 import {
   useClient,
   useCreatePortfolio,
@@ -154,33 +153,20 @@ export default function ClientDetailPage() {
       </div>
 
       {showProfiler && (
-        <div className="mb-8 -mx-6">
-          <div className="px-5">
-            <SaveProfileBar
-              answers={answers}
-              onSave={handleSaveProfile}
-              isSaving={saveProfile.isPending}
-              saveStatus={saveStatus}
-              saveError={saveError}
-              saveLabel="Save Client Profile"
-              clientName={client.name}
-              hint="Complete the questionnaire, then save to this client's record"
-            />
-          </div>
-          <ProfilerWizard
-            key={`client-profiler-${currentProfile?.id ?? "new"}-${showProfiler}`}
-            clientName={client.name}
-            initialAnswers={answers}
-            onAnswersChange={setAnswers}
-            showClientInput={false}
-            showSaveButton
-            onSave={handleSaveProfile}
-            saveLabel="Save Client Profile"
-            saveDisabled={saveProfile.isPending}
-            saveStatus={saveStatus}
-            saveError={saveError}
-          />
-        </div>
+        <EmbeddedProfiler
+          key={`client-profiler-${currentProfile?.id ?? "new"}-${showProfiler}`}
+          clientName={client.name}
+          answers={answers}
+          onAnswersChange={setAnswers}
+          onSave={handleSaveProfile}
+          saveLabel="Save Client Profile"
+          saveDisabled={saveProfile.isPending}
+          isSaving={saveProfile.isPending}
+          saveStatus={saveStatus}
+          saveError={saveError}
+          showSaveProfileBar
+          saveProfileBarHint="Complete the questionnaire, then save to this client's record"
+        />
       )}
 
       <FinesseCard title="Portfolios" padding="lg" className="mb-8">
