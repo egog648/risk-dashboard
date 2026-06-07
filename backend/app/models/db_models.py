@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -52,3 +52,89 @@ class CustomTicker(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
+
+
+class Client(Base):
+    """Advisor client / investor record."""
+
+    __tablename__ = "clients"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(256))
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    profiles: Mapped[list["ClientProfile"]] = relationship(back_populates="client")
+    portfolios: Mapped[list["Portfolio"]] = relationship(back_populates="client")
+
+
+class ClientProfile(Base):
+    """Versioned investment profiler result."""
+
+    __tablename__ = "client_profiles"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    client_id: Mapped[int] = mapped_column(ForeignKey("clients.id", ondelete="CASCADE"), index=True)
+    is_portfolio_override: Mapped[bool] = mapped_column(Boolean, default=False)
+    answers_json: Mapped[str] = mapped_column(Text)  # JSON: {"q1":"A",...}
+    growth_pct: Mapped[float] = mapped_column(Float)
+    income_pct: Mapped[float] = mapped_column(Float)
+    safety_pct: Mapped[float] = mapped_column(Float)
+    raw_aggression_pct: Mapped[float] = mapped_column(Float)
+    governed_aggression_pct: Mapped[float] = mapped_column(Float)
+    governor_cap_pct: Mapped[float] = mapped_column(Float)
+    profile_label: Mapped[str] = mapped_column(String(64))
+    risk_label: Mapped[str] = mapped_column(String(64))
+    questions_answered: Mapped[int] = mapped_column()
+    is_current: Mapped[bool] = mapped_column(Boolean, default=False)
+    saved_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    client: Mapped["Client"] = relationship(back_populates="profiles")
+
+
+class Portfolio(Base):
+    """Account or goal under a client."""
+
+    __tablename__ = "portfolios"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    client_id: Mapped[int] = mapped_column(ForeignKey("clients.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(256))
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    profile_override_id: Mapped[int | None] = mapped_column(
+        ForeignKey("client_profiles.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    client: Mapped["Client"] = relationship(back_populates="portfolios")
+    override_profile: Mapped["ClientProfile | None"] = relationship(foreign_keys=[profile_override_id])
+    outlines: Mapped[list["PortfolioOutline"]] = relationship(back_populates="portfolio")
+
+
+class PortfolioOutline(Base):
+    """Generated portfolio allocation from a profile."""
+
+    __tablename__ = "portfolio_outlines"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    portfolio_id: Mapped[int] = mapped_column(
+        ForeignKey("portfolios.id", ondelete="CASCADE"), index=True
+    )
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("client_profiles.id", ondelete="CASCADE"), index=True
+    )
+    sleeve_allocation_json: Mapped[str] = mapped_column(Text)  # stocks/bonds/alts/cash
+    weights_json: Mapped[str] = mapped_column(Text)  # PortfolioWeights
+    vehicles_json: Mapped[str] = mapped_column(Text)
+    narrative: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16), default="draft")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    portfolio: Mapped["Portfolio"] = relationship(back_populates="outlines")
+    profile: Mapped["ClientProfile"] = relationship()

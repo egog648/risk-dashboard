@@ -13,6 +13,8 @@ const MACRO_NAV = [
 ];
 
 const PRACTICE_NAV = [
+  { href: "/clients", label: "Clients", icon: "👤" },
+  { href: "/profiler", label: "Profiler", icon: "📝" },
   { href: "/tickers", label: "Tickers", icon: "📋" },
 ];
 

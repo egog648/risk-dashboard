@@ -23,6 +23,26 @@ def get_db():
         db.close()
 
 
+def _migrate_client_workspace_schema() -> None:
+    """Lightweight schema patches for SQLite dev databases without Alembic."""
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    if "client_profiles" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("client_profiles")}
+    with engine.begin() as conn:
+        if "is_portfolio_override" not in columns:
+            conn.execute(
+                text(
+                    "ALTER TABLE client_profiles "
+                    "ADD COLUMN is_portfolio_override BOOLEAN NOT NULL DEFAULT 0"
+                )
+            )
+
+
 def init_db():
     from app.models import db_models  # noqa: F401 — ensures models are registered
     Base.metadata.create_all(bind=engine)
+    _migrate_client_workspace_schema()

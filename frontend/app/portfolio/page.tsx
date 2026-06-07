@@ -1,20 +1,32 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useEfficientFrontier } from "@/hooks/useEfficientFrontier";
 import { AllocationSliders } from "@/components/portfolio/AllocationSliders";
 import { EfficientFrontierChart } from "@/components/dashboard/EfficientFrontierChart";
 import { CorrelationHeatmap } from "@/components/charts/CorrelationHeatmap";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
+import { loadPrefillWeights } from "@/components/profiler/SendToOptimizerButton";
 import { DEFAULT_WEIGHTS } from "@/types/portfolio";
 import type { PortfolioWeights } from "@/types/portfolio";
 
 export default function PortfolioPage() {
+  const searchParams = useSearchParams();
   const [weights, setWeights] = useState<PortfolioWeights>(DEFAULT_WEIGHTS);
+  const [prefilled, setPrefilled] = useState(false);
   const { mutate, data, isPending, isError } = useEfficientFrontier();
 
-  // Compute frontier on mount with default weights
   useEffect(() => {
+    if (searchParams?.get("prefill") === "1") {
+      const prefill = loadPrefillWeights();
+      if (prefill) {
+        setWeights(prefill);
+        setPrefilled(true);
+        mutate(prefill);
+        return;
+      }
+    }
     mutate(weights);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -34,6 +46,11 @@ export default function PortfolioPage() {
           Adjust allocation weights and explore the efficient frontier using
           fundamental-based expected returns
         </p>
+        {prefilled && (
+          <p className="text-xs text-ff-green mt-1 font-semibold">
+            Weights pre-filled from client portfolio outline
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

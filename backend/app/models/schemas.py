@@ -181,3 +181,116 @@ class TickerValidateResponse(BaseModel):
     ticker: str
     valid: bool
     message: str | None = None
+
+
+# --- Client workspace ---
+
+OutlineStatus = Literal["draft", "presented", "implemented"]
+
+
+class ClientCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=256)
+    notes: str | None = None
+
+
+class ClientUpdate(BaseModel):
+    name: str | None = Field(None, min_length=1, max_length=256)
+    notes: str | None = None
+
+
+class ClientResponse(BaseModel):
+    id: int
+    name: str
+    notes: str | None
+    created_at: datetime
+    updated_at: datetime
+    current_profile_id: int | None = None
+    portfolio_count: int = 0
+
+    model_config = {"from_attributes": True}
+
+
+class ClientProfileCreate(BaseModel):
+    answers: dict[str, str] = Field(..., description="q1-q12 letter answers")
+    growth_pct: float
+    income_pct: float
+    safety_pct: float
+    raw_aggression_pct: float
+    governed_aggression_pct: float
+    governor_cap_pct: float
+    profile_label: str
+    risk_label: str
+    questions_answered: int = Field(..., ge=0, le=12)
+
+
+class ClientProfileResponse(BaseModel):
+    id: int
+    client_id: int
+    is_portfolio_override: bool
+    answers: dict[str, str]
+    growth_pct: float
+    income_pct: float
+    safety_pct: float
+    raw_aggression_pct: float
+    governed_aggression_pct: float
+    governor_cap_pct: float
+    profile_label: str
+    risk_label: str
+    questions_answered: int
+    is_current: bool
+    saved_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class PortfolioCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=256)
+    notes: str | None = None
+
+
+class PortfolioUpdate(BaseModel):
+    name: str | None = Field(None, min_length=1, max_length=256)
+    notes: str | None = None
+
+
+class PortfolioResponse(BaseModel):
+    id: int
+    client_id: int
+    name: str
+    notes: str | None
+    profile_override_id: int | None
+    effective_profile_id: int | None = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class SleeveAllocation(BaseModel):
+    stocks: float
+    bonds: float
+    alts: float
+    cash: float
+
+
+class VehicleSuggestion(BaseModel):
+    name: str
+    pct: float
+
+
+class PortfolioOutlineResponse(BaseModel):
+    id: int
+    portfolio_id: int
+    profile_id: int
+    sleeve_allocation: SleeveAllocation
+    weights: PortfolioWeights
+    vehicles: dict[str, list[VehicleSuggestion]]
+    narrative: str
+    status: OutlineStatus
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class PortfolioOutlineStatusUpdate(BaseModel):
+    status: OutlineStatus
