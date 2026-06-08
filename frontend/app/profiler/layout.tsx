@@ -50,7 +50,7 @@ function ProfilerLayoutContent({ children }: { children: React.ReactNode }) {
         onImport={handleImport}
       />
 
-      <div className="px-5 pt-4 space-y-4 max-w-[1100px] mx-auto">
+      <div className="px-5 pt-4 space-y-4 max-w-[1100px] mx-auto print:hidden">
         <div className="bg-white border border-ff-border rounded-[14px] p-4 shadow-[0_2px_12px_rgba(26,58,92,0.08)]">
           <ClientSearchInput
             clients={clients ?? []}

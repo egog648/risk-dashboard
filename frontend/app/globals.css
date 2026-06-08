@@ -27,14 +27,52 @@ body {
   color: var(--ff-text);
 }
 
+.profiler-print-root {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 8.5in;
+  background: #fff;
+}
+
 @media print {
-  body {
-    background: #fff;
+  @page {
+    margin: 0.75in;
+    size: letter;
   }
+
+  html,
+  body {
+    background: #fff !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .flex.h-screen,
+  main {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
   aside,
   header,
   [data-status-bar],
-  .print\:hidden {
+  .print\:hidden,
+  .tsqd-parent-container,
+  nextjs-portal {
     display: none !important;
+  }
+
+  body.profiler-print-active > *:not(.profiler-print-root) {
+    display: none !important;
+  }
+
+  body.profiler-print-active .profiler-print-root {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    display: block !important;
+    visibility: visible !important;
   }
 }

@@ -36,7 +36,11 @@ export default function RootLayout({
               <main className="flex-1 overflow-y-auto p-6">{children}</main>
             </div>
           </div>
-          <ReactQueryDevtools initialIsOpen={false} />
+          {process.env.NODE_ENV === "development" && (
+            <div className="print:hidden">
+              <ReactQueryDevtools initialIsOpen={false} />
+            </div>
+          )}
         </QueryClientProvider>
       </body>
     </html>

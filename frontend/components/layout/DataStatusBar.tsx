@@ -34,7 +34,10 @@ export function DataStatusBar() {
   };
 
   return (
-    <div className="h-6 bg-white border-b border-ff-border flex items-center px-6 gap-2 shrink-0">
+    <div
+      data-status-bar
+      className="h-6 bg-white border-b border-ff-border flex items-center px-6 gap-2 shrink-0"
+    >
       <span
         className={`w-1.5 h-1.5 rounded-full ${statusColors[data.overall_status]}`}
       />

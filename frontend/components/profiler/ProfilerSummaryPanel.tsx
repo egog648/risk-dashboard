@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useMemo, useState } from "react";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
 import { ObjectiveBar, OBJECTIVE_COLORS } from "@/components/finesse/ObjectiveBar";
 import { TriangleChart } from "./TriangleChart";
@@ -9,7 +10,14 @@ import { ImplementationDetail } from "./ImplementationDetail";
 import { AdvisorReport } from "./AdvisorReport";
 import type { ProfilerAnswers } from "@/lib/profiler/questions";
 import { computeScores } from "@/lib/profiler/scoring";
-import { buildAdvisorReport } from "@/lib/profiler/report";
+import { buildAdvisorReport, formatProfilerDate } from "@/lib/profiler/report";
+import { useProfilerPrint } from "@/lib/profiler/useProfilerPrint";
+
+const ProfilerPrintDocument = dynamic(
+  () =>
+    import("./ProfilerPrintDocument").then((mod) => mod.ProfilerPrintDocument),
+  { ssr: false }
+);
 
 export interface ProfilerSummaryPanelProps {
   answers: ProfilerAnswers;
@@ -38,10 +46,20 @@ export function ProfilerSummaryPanel({
   showPrintButton = true,
   onReset,
 }: ProfilerSummaryPanelProps) {
+  const printForClient = useProfilerPrint();
+  const [reportDate, setReportDate] = useState<string | undefined>(undefined);
   const scores = useMemo(() => computeScores(answers), [answers]);
+
+  useEffect(() => {
+    setReportDate(formatProfilerDate());
+  }, []);
+
   const report = useMemo(
-    () => buildAdvisorReport(answers, clientName.trim() || "Client"),
-    [answers, clientName]
+    () =>
+      reportDate
+        ? buildAdvisorReport(answers, clientName.trim() || "Client", reportDate)
+        : null,
+    [answers, clientName, reportDate]
   );
 
   const allocationBars = [
@@ -51,7 +69,10 @@ export function ProfilerSummaryPanel({
   ];
 
   return (
-    <div className="max-w-[700px] mx-auto p-5 print:static print:max-w-[700px] print:mx-auto">
+    <>
+      <ProfilerPrintDocument answers={answers} clientName={clientName} />
+
+      <div className="max-w-[700px] mx-auto p-5 print:static print:max-w-[700px] print:mx-auto">
       {clientName.trim() && (
         <div className="text-sm font-bold text-ff-navy mb-3">{clientName.trim()}</div>
       )}
@@ -80,10 +101,10 @@ export function ProfilerSummaryPanel({
         {showPrintButton && (
           <button
             type="button"
-            onClick={() => window.print()}
+            onClick={printForClient}
             className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-ff-navy text-white border-none rounded-lg text-xs font-semibold hover:bg-[#254d73] transition-colors"
           >
-            🖨 Print Summary
+            Print for Client
           </button>
         )}
         {showSaveButton && onSave && (
@@ -113,6 +134,7 @@ export function ProfilerSummaryPanel({
           {saveStatus}
         </p>
       )}
-    </div>
+      </div>
+    </>
   );
 }

@@ -140,9 +140,18 @@ export function computeSleeveAllocation(
   };
 }
 
+export function formatProfilerDate(date = new Date()): string {
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 export function buildAdvisorReport(
   answers: ProfilerAnswers,
-  clientName = "Client"
+  clientName = "Client",
+  reportDate?: string
 ): AdvisorReport | null {
   const sc = computeScores(answers);
   if (sc.totalAns < 10) return null;
@@ -211,11 +220,7 @@ export function buildAdvisorReport(
         ? "Corporate bonds, intermediate duration"
         : "Treasuries, investment-grade munis";
 
-  const today = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const today = reportDate ?? formatProfilerDate();
 
   return {
     clientName,
