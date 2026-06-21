@@ -70,21 +70,21 @@ start http://localhost:3000
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/v1/equities/all` | All equity sub-classes |
+| `GET /api/v1/equities/all?include_history=false` | All equity sub-classes (metrics-only by default) |
 | `GET /api/v1/equities/large-cap` | Large cap metrics |
 | `GET /api/v1/equities/mid-cap` | Mid cap metrics |
 | `GET /api/v1/equities/small-cap` | Small cap metrics |
-| `GET /api/v1/credit/all` | All credit sub-classes |
+| `GET /api/v1/credit/all?include_history=false` | All credit sub-classes |
 | `GET /api/v1/credit/government` | Government bonds |
 | `GET /api/v1/credit/corporate-ig` | Investment grade corporate |
 | `GET /api/v1/credit/corporate-hy` | High yield corporate |
 | `GET /api/v1/credit/yield-curve` | Treasury yield curve points |
-| `GET /api/v1/hard-assets/all` | All hard asset sub-classes |
+| `GET /api/v1/hard-assets/all?include_history=false` | All hard asset sub-classes |
 | `GET /api/v1/hard-assets/gold` | Gold |
 | `GET /api/v1/hard-assets/reits` | REITs |
 | `GET /api/v1/hard-assets/commodities` | Broad commodities |
-| `GET /api/v1/cash/all` | Cash / money market |
-| `POST /api/v1/portfolio/frontier` | Efficient frontier (body: PortfolioWeights) |
+| `GET /api/v1/cash/all?include_history=false` | Cash / money market |
+| `POST /api/v1/portfolio/frontier?high_detail=false` | Efficient frontier (body: `FrontierComputeRequest`) |
 | `GET /api/v1/data-status` | Data freshness status |
 | `POST /api/v1/data-status/refresh` | Manual data refresh |
 | `GET /health` | Health check |
@@ -95,6 +95,26 @@ start http://localhost:3000
 | `DELETE /api/v1/tickers/{id}` | Deactivate ticker |
 | `POST /api/v1/tickers/validate` | Validate symbol without saving |
 | `GET /api/v1/tickers/recommend` | Rank registry tickers for profile G/I/S + aggression (Module 16) |
+| `GET /api/v1/clients` | List clients (Module 14) |
+| `POST /api/v1/clients` | Create client |
+| `GET /api/v1/clients/{id}` | Get client |
+| `PUT /api/v1/clients/{id}` | Update client |
+| `DELETE /api/v1/clients/{id}` | Delete client |
+| `GET /api/v1/clients/{id}/profiles` | List client profiles |
+| `POST /api/v1/clients/{id}/profiles` | Save profiler result to client |
+| `GET /api/v1/clients/{id}/portfolios` | List portfolios |
+| `POST /api/v1/clients/{id}/portfolios` | Create portfolio |
+| `GET /api/v1/clients/{id}/portfolios/{pid}` | Get portfolio |
+| `PUT /api/v1/clients/{id}/portfolios/{pid}` | Update portfolio |
+| `DELETE /api/v1/clients/{id}/portfolios/{pid}` | Delete portfolio |
+| `POST /api/v1/clients/{id}/portfolios/{pid}/profiles` | Save profile scoped to portfolio |
+| `GET /api/v1/clients/{id}/portfolios/{pid}/outlines` | List portfolio outlines |
+| `POST /api/v1/clients/{id}/portfolios/{pid}/outlines` | Generate outline from latest profile |
+| `PATCH /api/v1/clients/{id}/portfolios/{pid}/outlines/{oid}` | Update outline status |
+
+**Query params on `/all` endpoints:** `include_history` (default `false`) — when `false`, returns metrics without 756-point price history (faster overview loads).
+
+**Portfolio frontier body:** `FrontierComputeRequest` with `weights` (required) and optional `suggested_weights`. Legacy flat `PortfolioWeights` body still accepted.
 
 Full Swagger UI: http://localhost:8000/docs
 

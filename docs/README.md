@@ -25,6 +25,8 @@ Single entry point for all project documentation.
 | [HANDOFF_CHECKLIST.md](HANDOFF_CHECKLIST.md) | New-contributor bootstrap | Setup sequence changes |
 | [reference/FRED_SERIES.md](reference/FRED_SERIES.md) | FRED series registry | New macro series added |
 | [sessions/HANDOFF_NOTE.md](sessions/HANDOFF_NOTE.md) | Rolling session log | End of each work session |
+| [REFACTOR_CHECKLIST.md](REFACTOR_CHECKLIST.md) | Completed refactor record (historical) | Refactor track closes; read-only after close-out |
+| [sessions/PERFORMANCE_BASELINE.md](sessions/PERFORMANCE_BASELINE.md) | Performance benchmark record | After performance pass or re-measurement |
 | `modules/01–09` | Phase 1 build steps | Foundation feature work |
 | `modules/10–17` | Phase 2 advisory expansion | Practice tool feature work |
 

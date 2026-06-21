@@ -7,97 +7,114 @@ This file tracks confirmed limitations and unresolved risks that matter for road
 - Medium: impacts reliability, quality, or maintainability.
 - Low: improvement item with limited immediate impact.
 
+## Verified Gaps Summary
+
+| # | Gap | Severity | Phase | Status |
+|---|-----|----------|-------|--------|
+| 3 | Dev-oriented Docker compose defaults | Medium | Phase 3 | Open |
+| 4 | CI enforcement (core tests) | Medium | Phase 2 | Resolved |
+| 5 | Hardcoded expected-return assumptions | Medium | Phase 3 | Open |
+| 8 | Custom tickers excluded from frontier | Low | Deferred | Open |
+| 13 | Clients/profiler/tickers test coverage | Medium | Phase 2 tail | Open |
+| 14 | E2E mocks optimizer response | Low | Phase 2 tail | Open |
+| 15 | `datetime.utcnow()` deprecation warnings | Low | Phase 3 | Open |
+| 16 | React Query `staleTime` not unified to 60s | Low | — | Open |
+
+Resolved gaps (#1, #2, #7, #9–#12) are listed below for history.
+
 ## Gaps Register
 
 ### 1) Portfolio weight schema mismatch
 - Severity: High
-- Impact: Some user-provided allocation fields may not map cleanly across frontend/backend, risking incorrect optimizer interpretation.
 - Status: Resolved (Phase 1)
-- Resolution: Backend schema now uses split corporate keys (`credit_corporate_ig`, `credit_corporate_hy`) to match frontend and optimizer mapping, with legacy `credit_corporate` mapped to IG for backward compatibility.
-- Roadmap phase: Phase 1
+- Resolution: Backend schema uses split corporate keys with legacy `credit_corporate` mapped to IG.
 
 ### 2) Inconsistent empty-data handling in asset services
 - Severity: High
-- Impact: Some endpoints can fail when expected series/ticker data is empty.
 - Status: Resolved (Phase 1)
-- Resolution: Asset services now short-circuit to degraded `200` payloads with `data_status` and `missing_series` metadata when primary ticker data is unavailable.
-- Roadmap phase: Phase 1
+- Resolution: Degraded `200` payloads with `data_status` and `missing_series` metadata.
 
 ### 3) Dev-oriented runtime defaults
 - Severity: Medium
-- Impact: Dockerfiles currently run development servers (`npm run dev`, `uvicorn --reload`) which are not ideal for production deployment.
+- Impact: `docker-compose.yml` targets `development` for both services (`npm run dev`, `uvicorn --reload`). Production stages exist in Dockerfiles but are not wired into default compose.
 - Current workaround: Use current setup for local/dev only.
-- Planned fix: Add production-grade Docker/runtime profiles and release checklist.
+- Planned fix: Add production compose profile and validated release startup path.
 - Roadmap phase: Phase 3
 
-### 4) Limited integration and end-to-end test coverage
+### 4) Limited integration and end-to-end test coverage / no CI
 - Severity: Medium
-- Impact: Regressions may slip through because coverage is weighted toward unit logic.
-- Current workaround: Use local pre-merge test suite execution; CI enforcement is still pending.
-- Planned fix: Add CI workflow enforcement for backend smoke/contracts, frontend integration, and e2e happy path.
-- Progress:
-  - Phase 1: Added `backend/tests/test_api_smoke.py` for core health and `/api/v1/*` smoke coverage.
-  - Phase 2: Added `backend/tests/test_api_contracts.py`, frontend Vitest/MSW integration tests under `frontend/tests/`, and `frontend/e2e/happy-path.spec.ts` with deterministic optimizer step; local runs are green.
-- Roadmap phase: Phase 2
+- Status: **Partially resolved** (2026-06-21)
+- Resolution: GitHub Actions CI enforces backend pytest, frontend Vitest, and `next build` on push/PR to `main` (`.github/workflows/ci.yml`). Playwright e2e remains local-only; clients/profiler coverage gap tracked in #13.
+- Remaining: E2e in CI (#14); expand test coverage for advisory surfaces (#13).
+- Roadmap phase: Phase 2 (core CI closed); e2e deferred
 
 ### 5) Hardcoded expected-return assumptions
 - Severity: Medium
-- Impact: Some return projections rely on static assumptions that may drift from market reality.
+- Impact: Some return projections rely on static constants in `expected_returns.py` (e.g. earnings yield defaults, REIT spread assumptions).
 - Current workaround: Treat estimates as directional for prototype use.
-- Planned fix: Replace hardcoded assumptions with sourced/calibrated inputs where feasible.
+- Planned fix: Replace with sourced/calibrated inputs; version assumptions in `METHODOLOGY.md`.
 - Roadmap phase: Phase 3
 
 ### 6) Documentation drift risk
 - Severity: Medium
-- Impact: Setup confusion and onboarding delay when docs diverge from implementation.
-- Status: Mitigated (Phase 4 doc reorg)
-- Resolution: Added `docs/README.md` entry point, `docs/DOC_RULES.md`, and unified `BUILD.md` Part 2 index.
-- Roadmap phase: Ongoing
+- Status: Mitigated (2026-06-21 doc SSOT reconciliation)
+- Resolution: `DOC_RULES.md` conflict resolution, BUILD/API sync, ROADMAP phase status updated.
 
 ### 7) Static vehicle suggestions in HTML profiler
 - Severity: Medium
-- Impact: Profiler hardcodes ETF names (VTI, JEPI, etc.) without advisor-controlled registry or live validation.
 - Status: Resolved (Module 16)
-- Resolution: `GET /api/v1/tickers/recommend` ranks active registry tickers by G/I/S cosine similarity with objective and aggression boosts. Profiler advisor report uses `VehicleSuggestions` with static fallback when registry is empty.
-- Roadmap phase: Phase 4
 
 ### 8) Custom tickers excluded from efficient frontier
 - Severity: Low
 - Impact: Registry tickers (JEPI) cannot yet be optimized on the frontier curve.
-- Current workaround: Use macro proxy tickers (SPY, LQD) for optimization; registry for implementation mapping.
+- Current workaround: Use macro proxy tickers (SPY, LQD) for optimization.
 - Planned fix: Dynamic `ASSET_TICKERS` from registry (v2).
-- Roadmap phase: Phase 4 / deferred
+- Roadmap phase: Deferred
 
 ### 9) Profiler save bypasses React Query cache invalidation
 - Severity: Medium
-- Impact: Saving from `/profiler` does not invalidate client/profile queries; `/clients/{id}` may show stale data until manual refresh.
 - Status: Resolved (Refactor Wave 1)
-- Resolution: `ProfilerContext` uses `useSaveClientProfileMutation` with the same invalidation keys as `useSaveClientProfile`.
-- Roadmap phase: Refactor Track
 
 ### 10) Duplicate expected-return computation paths
 - Severity: Medium
-- Impact: Asset classes and portfolio optimizer compute expected returns independently; drift risk when assumptions change.
 - Status: Resolved (Refactor Wave 2)
-- Resolution: Shared `expected_returns.py` module consumed by portfolio optimizer; asset classes use same CPI/risk-free helpers via `AssetClassBase`.
-- Roadmap phase: Refactor Track
 
 ### 11) Redundant series fetches on aggregate endpoints
 - Severity: Low
-- Impact: `/equities/all` and similar endpoints re-fetch shared FRED series multiple times per request.
 - Status: Resolved (Refactor Wave 3)
-- Resolution: Request-scoped memoization in `data_fetchers/cache.py` wired via middleware in `main.py`.
-- Roadmap phase: Refactor Track
 
 ### 12) Returns method inconsistency in portfolio evaluation
 - Severity: Low
-- Impact: Frontier uses log returns; current-portfolio point evaluation uses simple returns; Sharpe/vol may differ slightly.
 - Status: Resolved (Refactor Wave 3)
-- Resolution: Portfolio endpoint reuses `mu`/`cov` from `build_frontier`, which uses log returns via `compute_returns`.
-- Roadmap phase: Refactor Track
+
+### 13) Clients/profiler/tickers surfaces lack test coverage
+- Severity: Medium
+- Impact: Largest untested API and UI surfaces; regressions in advisory workflow may go unnoticed.
+- Evidence: No `test_clients.py`; no frontend tests for `/clients`, `/profiler`, `/tickers` routes.
+- Planned fix: Backend contract tests for clients API; frontend integration tests for key advisory flows.
+- Roadmap phase: Phase 2 tail / Phase 3
+
+### 14) E2E happy path mocks optimizer response
+- Severity: Low
+- Impact: Playwright e2e does not exercise real frontier math end-to-end; overview step may also fail on selector/timing drift.
+- Evidence: `frontend/e2e/happy-path.spec.ts` routes `POST /api/v1/portfolio/frontier` to a fixture; 2026-06-21 validation run failed on overview heading visibility.
+- Planned fix: Optional e2e mode with real backend frontier; stabilize overview selectors/waits.
+- Roadmap phase: Phase 2 tail
+
+### 15) `datetime.utcnow()` deprecation warnings
+- Severity: Low
+- Impact: Non-blocking pytest deprecation warnings; will break in future Python versions.
+- Planned fix: Replace with timezone-aware `datetime.now(UTC)` across backend.
+- Roadmap phase: Phase 3
+
+### 16) React Query `staleTime` not unified to 60s
+- Severity: Low
+- Impact: Refactor target was 60s global staleTime; asset hooks and ClientShell still use 5 min (data-status uses 60s).
+- Planned fix: Align staleTime policy or document intentional 5-min default for asset metrics.
+- Roadmap phase: Low priority cleanup
 
 ## Update Policy
-- Add new gaps when a bug or limitation is confirmed.
+- Add new gaps when a bug or limitation is confirmed by code inspection or validation.
 - Update status/workaround when behavior changes.
 - Remove only after fix is merged and validated by smoke tests.
 

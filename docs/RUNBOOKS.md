@@ -7,19 +7,47 @@ Operational guidance for local and containerized development environments.
 - `GET /api/v1/data-status` should not remain in sustained `error` state.
 - Frontend should load and render asset cards without repeated API errors.
 
-## Test Suites (Phase 2)
+## Test Suites
+
+### Full suite (pre-merge)
+- Backend (all tests):
+  - `cd backend && pytest tests/`
+  - Validated 2026-06-21: **38 passed**
+- Frontend integration:
+  - `cd frontend && npm run test`
+  - Validated 2026-06-21: **10 files, 40 passed**
+- Frontend production build:
+  - `cd frontend && npm run build`
+  - Validated 2026-06-21: **success (13 routes)**
+- Frontend e2e (requires backend at `:8000`):
+  - `cd frontend && npm run test:e2e`
+  - Note: e2e may fail if overview page timing/selectors drift; re-verify after UI changes
+
+### Focused subsets
 - Backend smoke + contracts:
   - `cd backend && pytest tests/test_api_smoke.py tests/test_api_contracts.py`
-- Ticker registry:
-  - `cd backend && pytest tests/test_ticker_registry.py`
-- Frontend integration tests:
-  - `cd frontend && npm run test`
-- Frontend e2e happy path:
-  - `cd frontend && npm run test:e2e`
+- Ticker registry + recommendations:
+  - `cd backend && pytest tests/test_ticker_registry.py tests/test_ticker_recommendations.py`
 
 ### Notes
 - The e2e happy path assumes a reachable backend at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`) with valid `FRED_API_KEY` and `TIINGO_API_KEY`.
 - The e2e flow triggers refresh and waits for data status readiness before asserting overview and optimizer behavior.
+
+## CI (GitHub Actions)
+
+Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — runs on every push and pull request to `main`.
+
+| Job | Command (local equivalent) | Notes |
+|-----|---------------------------|-------|
+| `backend-test` | `cd backend && pytest tests/ -q` | In-memory SQLite; no API keys |
+| `frontend-test` | `cd frontend && npm run test` | MSW mocks; no backend |
+| `frontend-build` | `cd frontend && npm run build` | Production compile check |
+
+View runs: https://github.com/egog648/risk-dashboard/actions
+
+**Not in CI (local only):** Playwright e2e (`npm run test:e2e`) — requires live backend and API keys.
+
+**Branch protection (manual):** In GitHub repo settings, require status checks `backend-test`, `frontend-test`, and `frontend-build` on `main` before merge.
 
 ## First-Run Bootstrap Validation (Deterministic)
 Use this exact sequence on a fresh environment:

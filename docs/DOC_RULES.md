@@ -13,6 +13,19 @@ Short rules for contributors and agents. Read this before writing docs or code.
 | How are metrics calculated? | [METHODOLOGY.md](METHODOLOGY.md) |
 | How do I run tests / fix incidents? | [RUNBOOKS.md](RUNBOOKS.md) |
 
+## Conflict resolution
+
+When two docs disagree, use the authoritative source — not the most recently edited file.
+
+| Question | Authoritative source | Non-authoritative (inform only) |
+|----------|---------------------|----------------------------------|
+| What phase are we in / what's next? | [ROADMAP.md](ROADMAP.md) | [sessions/HANDOFF_NOTE.md](sessions/HANDOFF_NOTE.md) |
+| What's broken or deferred? | [KNOWN_GAPS.md](KNOWN_GAPS.md) | Stale notes in [ARCHITECTURE.md](ARCHITECTURE.md) |
+| What endpoints/features exist? | [BUILD.md](BUILD.md) + active `modules/NN_*.md` | [REFACTOR_CHECKLIST.md](REFACTOR_CHECKLIST.md) scope tables |
+| How is it built? | [ARCHITECTURE.md](ARCHITECTURE.md), [METHODOLOGY.md](METHODOLOGY.md) | Session notes, refactor checklists |
+
+Historical records ([REFACTOR_CHECKLIST.md](REFACTOR_CHECKLIST.md), [sessions/PERFORMANCE_BASELINE.md](sessions/PERFORMANCE_BASELINE.md)) document past work; they do not override ROADMAP or BUILD for current status.
+
 ## When to create a new doc
 
 - **New build step** → one file in `docs/modules/` only (e.g. `12_INVESTMENT_PROFILER.md`).

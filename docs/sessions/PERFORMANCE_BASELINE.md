@@ -36,9 +36,19 @@ $r2.RawContentLength  # full history
 ## Expected post-optimization targets
 
 - Overview `/all` payloads (metrics-only): ~5–15 KB per asset class vs ~100 KB+ with history
-- Portfolio page: zero API calls until user clicks Run Optimizer
+- Portfolio page: zero API calls until user clicks Run Optimizer (or client portfolio / prefill auto-run)
 - Navigation: skeleton visible immediately via `loading.tsx`
 - Backend `/all` warm cache: sub-100ms with response cache (verify with `X-Response-Time`)
+
+## Post-optimization validation (2026-06-21)
+
+| Check | Result |
+|-------|--------|
+| Backend pytest | 38 passed |
+| Frontend vitest | 10 files, 40 passed |
+| Frontend build | 13 routes, success |
+| E2e happy path | Failed — overview heading timeout (see KNOWN_GAPS #14) |
+| Post-optimization payload/latency numbers | Not yet measured — re-run measurement commands above when backend is warm |
 
 ## Instrumentation added
 

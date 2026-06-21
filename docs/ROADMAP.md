@@ -2,20 +2,27 @@
 
 This roadmap moves the project from prototype to stable and handoff-friendly development.
 
+## Current phase
+
+**Phase 3 — Production Readiness** (active)
+
+**Next single priority:** Wire production Docker profile into compose (closes `KNOWN_GAPS.md` #3).
+
+Phases 1, 2, and 4 are closed. Refactor Track and post-refactor enhancements are complete. CI enforces backend pytest, frontend Vitest, and `next build` on every push/PR to `main`.
+
+---
+
 ## Phase 1 — Stabilize Correctness
 Goal: make core API/UI behavior reliable under normal local usage.
+
+**Status: Closed** (validated 2026-05-08; see `docs/sessions/HANDOFF_NOTE.md` Phase 1 Validation Record)
 
 ### Progress Snapshot
 - Completed: portfolio weight schema alignment across frontend/backend/optimizer with legacy key compatibility mapping.
 - Completed: standardized empty-data guards in asset services with degraded `200` responses and status metadata.
 - Completed: backend API smoke tests for `/health`, `/api/v1/data-status`, refresh trigger, all-asset endpoints, and yield curve.
 - Completed: deterministic first-run bootstrap sequence documented in build and runbook/checklist docs.
-
-### Priorities
-- Align portfolio weight schema across frontend payloads, backend models, and optimizer mapping.
-- Add standardized empty-data guards in asset services.
-- Create endpoint smoke-test coverage for core `/api/v1/*` surfaces.
-- Lock down deterministic first-run bootstrap instructions (env + refresh sequence).
+- Completed: clean-environment validation with valid API keys (2026-05-08).
 
 ### Exit Criteria
 - Portfolio request/response uses one consistent allocation key set.
@@ -23,49 +30,41 @@ Goal: make core API/UI behavior reliable under normal local usage.
 - Smoke tests pass for health, status, all-asset endpoints, and yield curve.
 - New contributor can boot and validate app using only docs.
 
-### Remaining to fully close Phase 1
-- Validate the full bootstrap + smoke path in a clean environment with valid `FRED_API_KEY` and `TIINGO_API_KEY`.
-- Add one short handoff verification run record (timestamp + outcome) after executing the clean-environment check.
-
-### Dependencies
-- Access to valid FRED and Tiingo API keys.
-- Agreement on canonical asset naming conventions for portfolio weights.
+---
 
 ## Phase 2 — Strengthen Quality Gates
 Goal: reduce regression risk and improve confidence in iterative changes.
 
-### Progress Snapshot
-- Completed: backend API contract test suite added with schema/field assertions for data status, yield curve, all-asset endpoints, and portfolio frontier.
-- Completed: frontend integration test harness scaffolded (Vitest + Testing Library + MSW) with initial hook/component/page tests for overview, data-status bar, and optimizer flow.
-- Completed: one Playwright e2e happy-path spec added for refresh -> status -> overview -> optimizer with deterministic optimizer assertion path.
-- Completed: local green run record captured for backend smoke/contracts, frontend integration, and e2e happy path.
+**Status: Closed** (CI workflow added; e2e remains local-only)
 
-### Priorities
-- Add backend API contract tests for response model shapes.
-- Add frontend integration tests for API hooks and key dashboard rendering paths.
-- Add one end-to-end happy path:
-  - trigger refresh
-  - verify data status
-  - load overview
-  - run portfolio optimizer
+### Progress Snapshot
+- Completed: backend API contract test suite with schema/field assertions for data status, yield curve, all-asset endpoints, and portfolio frontier.
+- Completed: frontend integration test harness (Vitest + Testing Library + MSW).
+- Completed: Playwright e2e happy-path spec (refresh → status → overview → optimizer).
+- Completed: local green run records for smoke/contracts, integration, and e2e.
+- Completed: GitHub Actions CI (`.github/workflows/ci.yml`) — `backend-test`, `frontend-test`, `frontend-build` on push/PR to `main`.
+
+### Remaining (deferred)
+- Playwright e2e in CI (requires API secrets; see `KNOWN_GAPS.md` #14).
 
 ### Exit Criteria
 - CI/local test workflow covers core backend contracts and primary frontend API flows.
 - E2E happy path passes consistently on clean environment setup.
 - Regressions in route contracts/components are caught by tests before merge.
 
-### Dependencies
-- Phase 1 schema stabilization.
-- Test fixture strategy for data-dependent endpoints.
+---
 
 ## Phase 3 — Production Readiness
 Goal: make runtime and methodology resilient enough for more serious deployment/testing.
 
+**Status: Active**
+
 ### Priorities
-- Introduce production runtime defaults for backend/frontend containers.
-- Improve persistence/runtime assumptions beyond prototype defaults where required.
-- Reduce hardcoded expected-return assumptions in risk methodology.
-- Add baseline observability expectations (refresh failures, endpoint latency, error rates).
+1. **Production Docker profile** — wire `production` Dockerfile stages into compose or `docker-compose.prod.yml`.
+2. **Integration tests** — clients/profiler/tickers surfaces (see `KNOWN_GAPS.md` #13).
+3. **Observability** — extend `TimingMiddleware` baseline with refresh-failure tracking and documented thresholds.
+4. **Methodology hardening** — replace hardcoded expected-return constants with sourced/versioned assumptions.
+5. **E2e in CI** — optional follow-up once gap #14 stability is addressed.
 
 ### Exit Criteria
 - Production-mode startup path is documented and validated.
@@ -76,15 +75,19 @@ Goal: make runtime and methodology resilient enough for more serious deployment/
 - Stable API contracts and tests from Phases 1 and 2.
 - Deployment target decision (local-only vs hosted environment).
 
+---
+
 ## Phase 4 — Advisory Practice Tools
 Goal: systematize client portfolio building with Finesse Funds profiler, custom ticker registry, and advisor workflow.
+
+**Status: Feature-complete** (Module 17 deferred)
 
 ### Progress Snapshot
 - Completed: documentation reorg (`docs/README.md`, `docs/DOC_RULES.md`, `docs/sessions/`).
 - Completed: Module 10 Finesse branding (design tokens, shared UI).
 - Completed: Module 11 custom ticker registry (CRUD API, `/tickers` page, tests).
 - Completed: Module 12 investment profiler (`/profiler`, scoring, advisor report shell).
-- Completed: Module 13 profile → portfolio bridge (`mapToPortfolioWeights`, optimizer prefill).
+- Completed: Module 13 profile → portfolio bridge (`mapToPortfolioWeights`, `mapProfileToPortfolioWeights`, optimizer prefill).
 - Completed: Module 14 client workspace (`/clients`, profiles, portfolios API).
 - Completed: Module 15 advisor report with live market callouts (yield curve, risk scores, credit cycle, data-status).
 - Completed: Module 16 registry-backed vehicle recommendations (`GET /tickers/recommend`, profiler summary integration).
@@ -98,29 +101,42 @@ See `docs/BUILD.md` Part 2 (Modules 10–17).
 - Client questionnaire produces portfolio weights analyzed against live market data.
 - Advisor report combines profile, optimizer output, and market callouts.
 
-### Dependencies
-- Phase 1–2 stable foundation.
-- Tiingo API for ticker validation.
+---
+
+## Refactor Track (Phase 2 → 3 bridge)
+
+**Status: Completed** (2026-06-21)
+
+Goal: reduce dead code, unify duplicated logic, and improve fetch efficiency without breaking API contracts.
+
+Control doc (historical): [`docs/REFACTOR_CHECKLIST.md`](REFACTOR_CHECKLIST.md)
+
+| Wave | Focus | Status |
+|------|-------|--------|
+| 0 | Docs + baseline | Completed |
+| 1 | Cleanup + bug fix | Completed |
+| 2 | Structural dedup | Completed |
+| 3 | Performance | Completed |
+
+Final validation (2026-06-21): backend pytest green, frontend vitest green, build success. Gaps #9–#12 closed in `KNOWN_GAPS.md`.
+
+---
+
+## Post-Refactor Enhancements
+
+**Status: Completed** (2026-06-21)
+
+Not a separate roadmap phase — incremental improvements after refactor close-out:
+
+- **Performance pass** (`ebcc675`): `include_history=false` default, response cache (10-min TTL), `ClientShell` split, route skeletons, lazy Recharts, on-demand optimizer on bare `/portfolio`. Record: [`docs/sessions/PERFORMANCE_BASELINE.md`](sessions/PERFORMANCE_BASELINE.md).
+- **Portfolio workflow** (`5afefc1`): `PortfolioSelector`, `PortfolioComparisonPanel`, `FrontierComputeRequest` with `suggested_weights`, client profile prefill via `mapProfileToPortfolioWeights`.
+
+---
 
 ## Ongoing Workstream: Documentation Hygiene
 - Start at `docs/README.md` and follow `docs/DOC_RULES.md`.
 - Keep `docs/BUILD.md` and active module doc synchronized with code.
-- Append session notes to `docs/sessions/HANDOFF_NOTE.md`.
-
-## Refactor Track (Phase 2 → 3 bridge)
-
-Goal: reduce dead code, unify duplicated logic, and improve fetch efficiency without breaking API contracts.
-
-Control doc: [`docs/REFACTOR_CHECKLIST.md`](REFACTOR_CHECKLIST.md)
-
-| Wave | Focus | Exit criteria |
-|------|-------|---------------|
-| 0 | Docs + baseline | Checklist exists; full test suite green and recorded |
-| 1 | Cleanup + bug fix | Dead code removed; FrontierControls wired; profiler cache fix |
-| 2 | Structural dedup | Shared asset-class pipeline + expected returns; profiler hook dedup |
-| 3 | Performance | Request-scoped cache; incremental upserts; N+1 fix |
-
-**Gate rule:** Each wave requires full test suite green before the next wave starts.
+- Append session notes to `docs/sessions/HANDOFF_NOTE.md` (log only — `ROADMAP.md` is authoritative for phase status).
 
 ## Related Docs
 - `docs/ARCHITECTURE.md`

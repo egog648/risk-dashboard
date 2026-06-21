@@ -59,7 +59,7 @@ Run this sequence in order before validating app behavior:
 ## 5) Data Readiness Verification
 - Confirm at least one successful refresh record per major series/ticker class in data status output.
 - Confirm dashboard cards/charts render with non-empty values.
-- Confirm portfolio page returns a frontier response for a default weight set.
+- Confirm portfolio page returns a frontier response when user clicks **Run Optimizer** (or when a client portfolio / `?prefill=1` auto-runs the optimizer).
 
 ## 6) Handoff Notes to Include
 - Branch name and latest intent.
@@ -73,6 +73,7 @@ Run this sequence in order before validating app behavior:
 - Any new endpoint/contract changes are reflected in docs.
 - Known gaps are updated when issues are found or fixed.
 - The handoff note leaves one unambiguous next action for the next owner.
+- **Pre-merge:** GitHub Actions CI must pass (`backend-test`, `frontend-test`, `frontend-build`) on PRs to `main`.
 
 ## Related Docs
 - `docs/ARCHITECTURE.md`

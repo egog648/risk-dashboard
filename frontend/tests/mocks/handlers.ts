@@ -17,12 +17,20 @@ export const handlers = [
   ),
   http.get(`${BASE_URL}/clients/:clientId/portfolios`, ({ params }) => {
     const clientId = Number(params.clientId);
-    return HttpResponse.json(fixtures.clientPortfolios[clientId] ?? []);
+    const clientPortfolios = fixtures.clientPortfolios as Record<
+      number,
+      (typeof fixtures.clientPortfolios)[1]
+    >;
+    return HttpResponse.json(clientPortfolios[clientId] ?? []);
   }),
   http.get(`${BASE_URL}/clients/:clientId/portfolios/:portfolioId`, ({ params }) => {
     const clientId = Number(params.clientId);
     const portfolioId = Number(params.portfolioId);
-    const portfolio = (fixtures.clientPortfolios[clientId] ?? []).find((p) => p.id === portfolioId);
+    const clientPortfolios = fixtures.clientPortfolios as Record<
+      number,
+      (typeof fixtures.clientPortfolios)[1]
+    >;
+    const portfolio = (clientPortfolios[clientId] ?? []).find((p) => p.id === portfolioId);
     if (!portfolio) {
       return new HttpResponse(null, { status: 404 });
     }

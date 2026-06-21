@@ -164,3 +164,52 @@ Execute Wave 2: AssetClassBase pipeline, expected_returns module, profiler dedup
 
 ## Next single priority
 Resume Phase 3 production-readiness planning (prod Docker profiles, observability) on the refactored baseline.
+
+---
+
+# Handoff Note — Doc SSOT Reconciliation and Gap Discovery
+
+## Completed
+- Added conflict resolution rules to `docs/DOC_RULES.md`; extended `docs/README.md` doc map with `REFACTOR_CHECKLIST.md` and `PERFORMANCE_BASELINE.md`.
+- Synced `docs/BUILD.md` API reference (clients endpoints, `include_history`, `FrontierComputeRequest`, `high_detail`).
+- Updated `docs/modules/08_PORTFOLIO_OPTIMIZER.md` and `docs/modules/14_CLIENT_WORKSPACE.md` to match committed code.
+- Updated `docs/ARCHITECTURE.md` (caching layers, TimingMiddleware, ClientShell, clients workspace, portfolio workflow).
+- Reconciled `docs/ROADMAP.md`: closed Phase 1, marked Refactor Track + post-refactor enhancements complete, set Phase 3 active.
+- Reconciled `docs/KNOWN_GAPS.md` with verified gaps (#3–#5, #8, #13–#16); closed doc drift (#6).
+- Closed out `docs/REFACTOR_CHECKLIST.md` as historical record.
+- Updated `docs/HANDOFF_CHECKLIST.md` portfolio smoke step (on-demand optimizer).
+- Updated `docs/RUNBOOKS.md` with validated test counts.
+- Fixed MSW handler type error in `frontend/tests/mocks/handlers.ts` (unblocked `next build` type-check).
+
+## Validation record (2026-06-21)
+- **Backend pytest:** `pytest tests/` → **38 passed** (40 deprecation warnings, non-blocking)
+- **Frontend vitest:** `npm run test` → **10 files, 40 passed**
+- **Frontend build:** `npm run build` → **success (13 routes)**
+- **Frontend e2e:** `npm run test:e2e` → **1 failed** (overview heading not visible within 15s; backend was reachable)
+- **API surface:** BUILD.md API table aligned with `backend/app/api/v1/router.py` endpoint groups
+
+## Verified open gaps (see KNOWN_GAPS.md)
+- No CI ( #4 ) — **next priority**
+- Prod Docker compose defaults to dev (#3)
+- Clients/profiler/tickers test coverage (#13)
+- Hardcoded expected returns (#5)
+- E2e stability (#14)
+
+## Next single priority
+Add GitHub Actions CI workflow to enforce backend pytest, frontend Vitest, and `next build` on every push/PR.
+
+---
+
+# Handoff Note — GitHub Actions CI
+
+## Completed
+- Added `.github/workflows/ci.yml` with parallel jobs: `backend-test`, `frontend-test`, `frontend-build`.
+- Updated `docs/RUNBOOKS.md` (CI section), `docs/ROADMAP.md` (Phase 2 closed), `docs/KNOWN_GAPS.md` (#4 partially resolved), `docs/HANDOFF_CHECKLIST.md` (pre-merge CI gate).
+
+## CI validation record
+- **Workflow:** `CI` on push/PR to `main`
+- **Jobs:** backend pytest, frontend Vitest, frontend build (no API secrets; e2e deferred)
+- **First green run:** _(record URL after push)_
+
+## Next single priority
+Wire production Docker profile into compose (`KNOWN_GAPS.md` #3).
