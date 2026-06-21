@@ -14,7 +14,7 @@ function wrapper({ children }: { children: ReactNode }) {
 describe("useEfficientFrontier", () => {
   it("posts weights and returns an optimizer response", async () => {
     const { result } = renderHook(() => useEfficientFrontier(), { wrapper });
-    result.current.mutate(DEFAULT_WEIGHTS);
+    result.current.mutate({ weights: DEFAULT_WEIGHTS });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.frontier.length).toBeGreaterThan(0);

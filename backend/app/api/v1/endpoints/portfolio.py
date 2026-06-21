@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -28,8 +28,14 @@ ASSET_TICKERS = {
 
 
 @router.post("/frontier", response_model=EfficientFrontierResponse)
-def compute_frontier(weights: PortfolioWeights, db: Session = Depends(get_db)):
+def compute_frontier(
+    weights: PortfolioWeights,
+    db: Session = Depends(get_db),
+    high_detail: bool = Query(default=False),
+):
     """Compute the efficient frontier and evaluate the provided portfolio weights."""
+    n_frontier_points = 50 if high_detail else 25
+    n_monte_carlo = 2000 if high_detail else 500
     price_dict = {}
     for key, ticker in ASSET_TICKERS.items():
         series = fetch_ticker(ticker, db)
@@ -44,7 +50,12 @@ def compute_frontier(weights: PortfolioWeights, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Portfolio weight schema out of sync with optimizer keys.")
 
     try:
-        result = build_frontier(price_dict, expected_ret)
+        result = build_frontier(
+            price_dict,
+            expected_ret,
+            n_frontier_points=n_frontier_points,
+            n_monte_carlo=n_monte_carlo,
+        )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 

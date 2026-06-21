@@ -16,8 +16,8 @@ from app.services.risk.metrics import compute_returns
 def build_frontier(
     price_dict: dict[str, pd.Series],
     expected_ret: dict[str, float],
-    n_frontier_points: int = 50,
-    n_monte_carlo: int = 2000,
+    n_frontier_points: int = 25,
+    n_monte_carlo: int = 500,
     weight_bounds: tuple[float, float] = (0.0, 0.60),
 ) -> dict:
     """Compute the efficient frontier.

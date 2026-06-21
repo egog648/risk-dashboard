@@ -5,7 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { useEfficientFrontier } from "@/hooks/useEfficientFrontier";
 import { AllocationSliders } from "@/components/portfolio/AllocationSliders";
 import { FrontierControls } from "@/components/portfolio/FrontierControls";
-import { EfficientFrontierChart } from "@/components/dashboard/EfficientFrontierChart";
+import { FrontierDetailToggle } from "@/components/portfolio/FrontierDetailToggle";
+import { EfficientFrontierChart } from "@/components/dashboard/lazyDashboard";
 import { CorrelationHeatmap } from "@/components/charts/CorrelationHeatmap";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
 import { loadPrefillWeights } from "@/components/profiler/SendToOptimizerButton";
@@ -30,6 +31,7 @@ function PortfolioPageSkeleton() {
 function PortfolioPageContent() {
   const searchParams = useSearchParams();
   const [weights, setWeights] = useState<PortfolioWeights>(DEFAULT_WEIGHTS);
+  const [highDetail, setHighDetail] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
   const { mutate, data, isPending, isError } = useEfficientFrontier();
 
@@ -39,11 +41,9 @@ function PortfolioPageContent() {
       if (prefill) {
         setWeights(prefill);
         setPrefilled(true);
-        mutate(prefill);
-        return;
+        mutate({ weights: prefill, highDetail });
       }
     }
-    mutate(weights);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleWeightsChange = (newWeights: PortfolioWeights) => {
@@ -51,7 +51,7 @@ function PortfolioPageContent() {
   };
 
   const handleRun = () => {
-    mutate(weights);
+    mutate({ weights, highDetail });
   };
 
   return (
@@ -77,6 +77,7 @@ function PortfolioPageContent() {
             onRun={handleRun}
             isLoading={isPending}
           />
+          <FrontierDetailToggle highDetail={highDetail} onChange={setHighDetail} />
         </FinesseCard>
 
         <FinesseCard title="Efficient Frontier" padding="lg" className="xl:col-span-2">
@@ -86,6 +87,11 @@ function PortfolioPageContent() {
           {isError && (
             <div className="text-red-400 text-sm">
               Failed to compute frontier. Ensure backend data is seeded.
+            </div>
+          )}
+          {!isPending && !data && !isError && (
+            <div className="text-ff-muted text-sm py-16 text-center">
+              Adjust weights and click Run Optimizer to compute the efficient frontier.
             </div>
           )}
           {data && (

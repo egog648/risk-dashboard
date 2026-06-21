@@ -2,14 +2,15 @@
 
 import { useEquities } from "@/hooks/useAssetClass";
 import { AssetClassCard } from "@/components/dashboard/AssetClassCard";
-import { CycleChart } from "@/components/charts/CycleChart";
-import { ReturnDistribution } from "@/components/charts/ReturnDistribution";
+import { CycleChart, ReturnDistribution } from "@/components/charts/lazyCharts";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
 
 export default function EquitiesPage() {
-  const { data, isLoading, isError } = useEquities();
+  const { data, isLoading, isError } = useEquities(true);
 
-  if (isLoading) return <div className="text-ff-muted">Loading equities data...</div>;
+  if (isLoading && !data) {
+    return <div className="text-ff-muted">Loading equities data...</div>;
+  }
   if (isError) return <div className="text-red-400">Failed to load equities data.</div>;
 
   return (

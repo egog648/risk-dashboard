@@ -1,8 +1,10 @@
 import logging
+import time
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 
 from app.api.v1.router import api_router
 from app.core.config import settings
@@ -23,6 +25,23 @@ class RequestCacheMiddleware(BaseHTTPMiddleware):
             clear_request_cache()
 
 
+class TimingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start = time.perf_counter()
+        response = await call_next(request)
+        duration_ms = round((time.perf_counter() - start) * 1000, 2)
+        response.headers["X-Response-Time"] = f"{duration_ms}ms"
+        if request.url.path.startswith("/api/"):
+            logger.info(
+                "request_timing path=%s method=%s status=%s duration_ms=%s",
+                request.url.path,
+                request.method,
+                response.status_code,
+                duration_ms,
+            )
+        return response
+
+
 app = FastAPI(
     title="Risk Dashboard API",
     description="Macro risk and expected return calculations for major asset classes",
@@ -36,6 +55,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(TimingMiddleware)
 app.add_middleware(RequestCacheMiddleware)
 
 app.include_router(api_router, prefix="/api/v1")

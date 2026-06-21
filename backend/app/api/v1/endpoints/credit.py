@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -8,8 +8,11 @@ from app.models.schemas import AssetClassMetrics, YieldCurvePoint, YieldCurveRes
 from app.services.asset_classes.credit.corporate import CorporateBonds
 from app.services.asset_classes.credit.government import GovernmentBonds
 from app.services.data_fetchers.fred_client import fetch_series
+from app.services.data_fetchers.response_cache import get_cached, set_cached
 
 router = APIRouter()
+
+CACHE_PATH = "/credit/all"
 
 
 @router.get("/government", response_model=AssetClassMetrics)
@@ -28,12 +31,21 @@ def get_corporate_hy(db: Session = Depends(get_db)):
 
 
 @router.get("/all", response_model=list[AssetClassMetrics])
-def get_all_credit(db: Session = Depends(get_db)):
-    return [
-        GovernmentBonds().get_metrics(db),
-        CorporateBonds(grade="ig").get_metrics(db),
-        CorporateBonds(grade="hy").get_metrics(db),
+def get_all_credit(
+    db: Session = Depends(get_db),
+    include_history: bool = Query(default=False),
+):
+    cached = get_cached(CACHE_PATH, include_history)
+    if cached is not None:
+        return cached
+
+    result = [
+        GovernmentBonds().get_metrics(db, include_history=include_history),
+        CorporateBonds(grade="ig").get_metrics(db, include_history=include_history),
+        CorporateBonds(grade="hy").get_metrics(db, include_history=include_history),
     ]
+    set_cached(CACHE_PATH, include_history, result)
+    return result
 
 
 @router.get("/yield-curve", response_model=YieldCurveResponse)

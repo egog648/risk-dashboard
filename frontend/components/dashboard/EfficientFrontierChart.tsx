@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   Scatter,
   XAxis,
@@ -22,17 +23,26 @@ interface EfficientFrontierChartProps {
 const REFERENCE_STROKE = "#1a3a5c";
 
 export function EfficientFrontierChart({ data }: EfficientFrontierChartProps) {
-  const mcData = data.monte_carlo.map((p) => ({
-    x: p.volatility * 100,
-    y: p.expected_return * 100,
-    sharpe: p.sharpe,
-  }));
+  const mcData = useMemo(() => {
+    const step = Math.max(1, Math.ceil(data.monte_carlo.length / 500));
+    return data.monte_carlo
+      .filter((_, index) => index % step === 0)
+      .map((p) => ({
+        x: p.volatility * 100,
+        y: p.expected_return * 100,
+        sharpe: p.sharpe,
+      }));
+  }, [data.monte_carlo]);
 
-  const frontierData = data.frontier.map((p) => ({
-    x: p.volatility * 100,
-    y: p.expected_return * 100,
-    sharpe: p.sharpe,
-  }));
+  const frontierData = useMemo(
+    () =>
+      data.frontier.map((p) => ({
+        x: p.volatility * 100,
+        y: p.expected_return * 100,
+        sharpe: p.sharpe,
+      })),
+    [data.frontier]
+  );
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (!active || !payload?.[0]) return null;

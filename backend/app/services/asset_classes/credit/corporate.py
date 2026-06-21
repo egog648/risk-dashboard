@@ -16,7 +16,7 @@ class CorporateBonds(AssetClassBase):
         self.grade = grade
         self.sub_class = f"corporate_{grade}"
 
-    def get_metrics(self, db: Session):
+    def get_metrics(self, db: Session, *, include_history: bool = True):
         ticker = "LQD" if self.grade == "ig" else "HYG"
         spread_series_id = "BAMLC0A0CM" if self.grade == "ig" else "BAMLH0A0HYM2"
         default_loss = 0.003 if self.grade == "ig" else 0.025
@@ -48,4 +48,5 @@ class CorporateBonds(AssetClassBase):
             risk_free=risk_free,
             exp_return=exp_return,
             val_z=val_z,
+            include_history=include_history,
         )

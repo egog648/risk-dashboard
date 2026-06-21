@@ -1,5 +1,5 @@
 import React from "react";
-import OverviewPage from "@/app/page";
+import OverviewPage from "@/app/OverviewPage";
 import { renderWithProviders } from "@/tests/utils/renderWithProviders";
 import { screen } from "@testing-library/react";
 import { http, HttpResponse } from "msw";

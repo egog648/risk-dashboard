@@ -10,7 +10,7 @@ class MoneyMarket(AssetClassBase):
     asset_class = "cash"
     sub_class = "money_market"
 
-    def get_metrics(self, db: Session):
+    def get_metrics(self, db: Session, *, include_history: bool = True):
         prices = fetch_ticker("SHY", db)
         if not self._is_usable_price_series(prices):
             return self._degraded_metrics(missing_series=["SHY"])
@@ -31,4 +31,5 @@ class MoneyMarket(AssetClassBase):
             risk_free=risk_free,
             exp_return=exp_return,
             val_z=val_z,
+            include_history=include_history,
         )

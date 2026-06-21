@@ -23,7 +23,7 @@ class AssetClassBase(ABC):
     sub_class: str = ""
 
     @abstractmethod
-    def get_metrics(self, db: Session) -> AssetClassMetrics:
+    def get_metrics(self, db: Session, *, include_history: bool = True) -> AssetClassMetrics:
         """Compute and return risk metrics for this sub-asset class."""
         ...
 
@@ -118,6 +118,7 @@ class AssetClassBase(ABC):
         exp_return: float,
         val_z: float,
         implied_vol: float | None = None,
+        include_history: bool = True,
     ) -> AssetClassMetrics:
         """Build a successful AssetClassMetrics response."""
         stats = self.build_standard_risk_stats(prices, risk_free)
@@ -133,6 +134,6 @@ class AssetClassBase(ABC):
                 prices, risk_free, exp_return, val_z, implied_vol=implied_vol
             ),
             data_status="ok",
-            history=self._build_history(prices),
+            history=self._build_history(prices) if include_history else [],
             as_of=self._now(),
         )

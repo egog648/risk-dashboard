@@ -2,14 +2,15 @@
 
 import { useCredit } from "@/hooks/useAssetClass";
 import { AssetClassCard } from "@/components/dashboard/AssetClassCard";
-import { CycleChart } from "@/components/charts/CycleChart";
-import { YieldCurveChart } from "@/components/charts/YieldCurveChart";
+import { CycleChart, YieldCurveChart } from "@/components/charts/lazyCharts";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
 
 export default function CreditPage() {
-  const { data, isLoading, isError } = useCredit();
+  const { data, isLoading, isError } = useCredit(true);
 
-  if (isLoading) return <div className="text-ff-muted">Loading credit data...</div>;
+  if (isLoading && !data) {
+    return <div className="text-ff-muted">Loading credit data...</div>;
+  }
   if (isError) return <div className="text-red-400">Failed to load credit data.</div>;
 
   return (

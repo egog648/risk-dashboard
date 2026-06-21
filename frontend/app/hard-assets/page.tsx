@@ -2,13 +2,15 @@
 
 import { useHardAssets } from "@/hooks/useAssetClass";
 import { AssetClassCard } from "@/components/dashboard/AssetClassCard";
-import { CycleChart } from "@/components/charts/CycleChart";
+import { CycleChart } from "@/components/charts/lazyCharts";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
 
 export default function HardAssetsPage() {
-  const { data, isLoading, isError } = useHardAssets();
+  const { data, isLoading, isError } = useHardAssets(true);
 
-  if (isLoading) return <div className="text-ff-muted">Loading hard assets data...</div>;
+  if (isLoading && !data) {
+    return <div className="text-ff-muted">Loading hard assets data...</div>;
+  }
   if (isError) return <div className="text-red-400">Failed to load hard assets data.</div>;
 
   return (

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAllEquities } from "@/lib/api/equities";
 import { fetchAllCredit, fetchYieldCurve } from "@/lib/api/credit";
+import { queryKeys } from "@/lib/queryKeys";
 import { DATA_STATUS_STALE_TIME, fetchDataStatus } from "@/lib/api/dataStatus";
 import {
   buildMarketCallouts,
@@ -21,14 +22,14 @@ export function useMarketCalloutsData(
   const active = enabled && sleeve !== null;
 
   const equities = useQuery({
-    queryKey: ["equities"],
-    queryFn: fetchAllEquities,
+    queryKey: queryKeys.equities(false),
+    queryFn: () => fetchAllEquities(false),
     staleTime: DATA_STATUS_STALE_TIME,
     enabled: active,
   });
   const credit = useQuery({
-    queryKey: ["credit"],
-    queryFn: fetchAllCredit,
+    queryKey: queryKeys.credit(false),
+    queryFn: () => fetchAllCredit(false),
     staleTime: DATA_STATUS_STALE_TIME,
     enabled: active,
   });

@@ -10,7 +10,7 @@ class REITs(AssetClassBase):
     asset_class = "hard_assets"
     sub_class = "reits"
 
-    def get_metrics(self, db: Session):
+    def get_metrics(self, db: Session, *, include_history: bool = True):
         prices = fetch_ticker("VNQ", db)
         if not self._is_usable_price_series(prices):
             return self._degraded_metrics(missing_series=["VNQ"])
@@ -32,4 +32,5 @@ class REITs(AssetClassBase):
             risk_free=risk_free,
             exp_return=exp_return,
             val_z=val_z,
+            include_history=include_history,
         )

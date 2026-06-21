@@ -2,13 +2,15 @@
 
 import { useCash } from "@/hooks/useAssetClass";
 import { AssetClassCard } from "@/components/dashboard/AssetClassCard";
-import { CycleChart } from "@/components/charts/CycleChart";
+import { CycleChart } from "@/components/charts/lazyCharts";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
 
 export default function CashPage() {
-  const { data, isLoading, isError } = useCash();
+  const { data, isLoading, isError } = useCash(true);
 
-  if (isLoading) return <div className="text-ff-muted">Loading cash data...</div>;
+  if (isLoading && !data) {
+    return <div className="text-ff-muted">Loading cash data...</div>;
+  }
   if (isError) return <div className="text-red-400">Failed to load cash data.</div>;
 
   return (

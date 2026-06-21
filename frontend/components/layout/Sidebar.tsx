@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -13,6 +14,7 @@ import {
   ClipboardPen,
   List,
 } from "lucide-react";
+import { prefetchRouteData } from "@/lib/prefetch";
 
 type NavIconType = LucideIcon | "overview";
 
@@ -51,6 +53,7 @@ function NavIcon({ icon }: { icon: NavIconType }) {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const queryClient = useQueryClient();
 
   const linkClass = (href: string) => {
     const isActive =
@@ -78,7 +81,13 @@ export function Sidebar() {
           Macro
         </p>
         {MACRO_NAV.map(({ href, label, icon }) => (
-          <Link key={href} href={href} className={linkClass(href)}>
+          <Link
+            key={href}
+            href={href}
+            prefetch
+            onMouseEnter={() => prefetchRouteData(queryClient, href)}
+            className={linkClass(href)}
+          >
             <NavIcon icon={icon} />
             {label}
           </Link>
@@ -88,7 +97,7 @@ export function Sidebar() {
           Practice
         </p>
         {PRACTICE_NAV.map(({ href, label, icon }) => (
-          <Link key={href} href={href} className={linkClass(href)}>
+          <Link key={href} href={href} prefetch className={linkClass(href)}>
             <NavIcon icon={icon} />
             {label}
           </Link>

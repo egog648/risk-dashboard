@@ -1,7 +1,7 @@
 "use client";
 
 import type { AssetClassMetrics } from "@/types/assets";
-import { RiskSpeedometer } from "./RiskSpeedometer";
+import { RiskSpeedometer } from "./lazyDashboard";
 import { CycleIndicator } from "./CycleIndicator";
 import { fmtPct, fmtNum, fmtSubClass } from "@/lib/utils/formatters";
 

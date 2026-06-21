@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   LineChart,
   Line,
@@ -24,52 +25,57 @@ interface CycleChartProps {
  * Normalized price history chart (rebased to 100 at start) for multiple sub-assets.
  */
 export function CycleChart({ assets }: CycleChartProps) {
-  if (!assets.length || !assets[0].history?.length) {
-    return <div className="text-ff-muted text-sm">No history data available.</div>;
-  }
+  const thinned = useMemo(() => {
+    if (!assets.length || !assets[0].history?.length) {
+      return null;
+    }
 
-  // Collect all dates across assets
-  const dateSet = new Set<string>();
-  assets.forEach((a) =>
-    a.history.forEach((p) => dateSet.add(p.date.substring(0, 10)))
-  );
-  const sortedDates = Array.from(dateSet).sort();
+    const dateSet = new Set<string>();
+    assets.forEach((a) =>
+      a.history.forEach((p) => dateSet.add(p.date.substring(0, 10)))
+    );
+    const sortedDates = Array.from(dateSet).sort();
 
-  // Build a lookup for each asset
-  const assetLookup: Record<string, Record<string, number>> = {};
-  assets.forEach((a) => {
-    const key = fmtSubClass(a.sub_class);
-    assetLookup[key] = {};
-    a.history.forEach((p) => {
-      assetLookup[key][p.date.substring(0, 10)] = p.value;
-    });
-  });
-
-  // Normalize each asset to 100 at first available date
-  const startValues: Record<string, number> = {};
-  assets.forEach((a) => {
-    const key = fmtSubClass(a.sub_class);
-    const first = a.history[0]?.value;
-    startValues[key] = first || 1;
-  });
-
-  const chartData = sortedDates.map((date) => {
-    const point: Record<string, number | string> = { date };
+    const assetLookup: Record<string, Record<string, number>> = {};
     assets.forEach((a) => {
       const key = fmtSubClass(a.sub_class);
-      const val = assetLookup[key][date];
-      if (val !== undefined) {
-        point[key] = parseFloat(((val / startValues[key]) * 100).toFixed(2));
-      }
+      assetLookup[key] = {};
+      a.history.forEach((p) => {
+        assetLookup[key][p.date.substring(0, 10)] = p.value;
+      });
     });
-    return point;
-  });
 
-  // Thin to ~200 points for performance
-  const step = Math.ceil(chartData.length / 200);
-  const thinned = chartData.filter((_, i) => i % step === 0);
+    const startValues: Record<string, number> = {};
+    assets.forEach((a) => {
+      const key = fmtSubClass(a.sub_class);
+      const first = a.history[0]?.value;
+      startValues[key] = first || 1;
+    });
 
-  const assetKeys = assets.map((a) => fmtSubClass(a.sub_class));
+    const chartData = sortedDates.map((date) => {
+      const point: Record<string, number | string> = { date };
+      assets.forEach((a) => {
+        const key = fmtSubClass(a.sub_class);
+        const val = assetLookup[key][date];
+        if (val !== undefined) {
+          point[key] = parseFloat(((val / startValues[key]) * 100).toFixed(2));
+        }
+      });
+      return point;
+    });
+
+    const step = Math.ceil(chartData.length / 200);
+    return chartData.filter((_, i) => i % step === 0);
+  }, [assets]);
+
+  const assetKeys = useMemo(
+    () => assets.map((a) => fmtSubClass(a.sub_class)),
+    [assets]
+  );
+
+  if (!thinned) {
+    return <div className="text-ff-muted text-sm">No history data available.</div>;
+  }
 
   return (
     <div className="w-full h-56">

@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from app.core.database import SessionLocal
 from app.services.data_fetchers.fred_client import FRED_SERIES, fetch_series
+from app.services.data_fetchers.response_cache import invalidate_all
 from app.services.data_fetchers.yfinance_client import YFINANCE_TICKERS, fetch_ticker
 
 logger = logging.getLogger(__name__)
@@ -54,4 +55,5 @@ async def refresh_all_data():
             ]
         )
 
+    invalidate_all()
     logger.info("Full data refresh complete")

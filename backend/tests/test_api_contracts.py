@@ -96,7 +96,9 @@ async def test_all_asset_endpoints_contract(client, monkeypatch, path: str, patc
         monkeypatch.setattr(
             class_ref,
             "get_metrics",
-            lambda _self, _db, a=asset_class_name, s=sub_class: _sample_asset_metrics(a, s),
+            lambda _self, _db, *, include_history=True, a=asset_class_name, s=sub_class: _sample_asset_metrics(
+                a, s
+            ),
         )
 
     response = await client.get(path)
@@ -160,7 +162,7 @@ async def test_portfolio_frontier_contract(client, monkeypatch):
     monkeypatch.setattr(
         portfolio,
         "build_frontier",
-        lambda _price_dict, _expected_ret: {
+        lambda _price_dict, _expected_ret, **kwargs: {
             "frontier": [point],
             "max_sharpe": point,
             "min_vol": point,

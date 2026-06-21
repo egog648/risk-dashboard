@@ -10,7 +10,7 @@ class LargeCapEquities(AssetClassBase):
     asset_class = "equities"
     sub_class = "large_cap"
 
-    def get_metrics(self, db: Session):
+    def get_metrics(self, db: Session, *, include_history: bool = True):
         prices = fetch_ticker("SPY", db)
         if not self._is_usable_price_series(prices):
             return self._degraded_metrics(missing_series=["SPY"])
@@ -34,4 +34,5 @@ class LargeCapEquities(AssetClassBase):
             exp_return=exp_return,
             val_z=val_z,
             implied_vol=implied_vol,
+            include_history=include_history,
         )

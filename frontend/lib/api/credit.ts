@@ -1,8 +1,12 @@
 import type { AssetClassMetrics, YieldCurveResponse } from "@/types/assets";
 import { apiClient } from "./client";
 
-export async function fetchAllCredit(): Promise<AssetClassMetrics[]> {
-  const { data } = await apiClient.get<AssetClassMetrics[]>("/credit/all");
+export async function fetchAllCredit(
+  includeHistory = false
+): Promise<AssetClassMetrics[]> {
+  const { data } = await apiClient.get<AssetClassMetrics[]>("/credit/all", {
+    params: { include_history: includeHistory },
+  });
   return data;
 }
 

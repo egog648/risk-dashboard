@@ -1,12 +1,15 @@
-import type { EfficientFrontierResponse, PortfolioWeights } from "@/types/portfolio";
+import type { PortfolioWeights } from "@/types/portfolio";
 import { apiClient } from "./client";
+import type { EfficientFrontierResponse } from "@/types/portfolio";
 
 export async function fetchEfficientFrontier(
-  weights: PortfolioWeights
+  weights: PortfolioWeights,
+  highDetail = false
 ): Promise<EfficientFrontierResponse> {
   const { data } = await apiClient.post<EfficientFrontierResponse>(
     "/portfolio/frontier",
-    weights
+    weights,
+    { params: { high_detail: highDetail } }
   );
   return data;
 }
