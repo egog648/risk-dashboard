@@ -13,7 +13,7 @@ jobs:
     env:
       FRED_API_KEY: ci-test-key
       TIINGO_API_KEY: ci-test-key
-      DATABASE_URL: sqlite:///:memory:
+      DATABASE_URL: "sqlite:///:memory:"
     steps:
       - uses: actions/checkout@v4
 
