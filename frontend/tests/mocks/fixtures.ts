@@ -1,12 +1,18 @@
-import type { AssetClassMetrics } from "@/types/assets";
+import type { AssetClassMetrics, YieldCurveResponse } from "@/types/assets";
+import type { MarketCalloutContext } from "@/lib/reports/buildMarketCallouts";
+import type { SleeveAllocation } from "@/lib/profiler/report";
 import type { EfficientFrontierResponse } from "@/types/portfolio";
 
-function makeAsset(subClass: string): AssetClassMetrics {
+function makeAsset(
+  subClass: string,
+  overrides: Partial<AssetClassMetrics> & { metrics?: Partial<AssetClassMetrics["metrics"]> } = {}
+): AssetClassMetrics {
+  const { metrics: metricOverrides, ...rest } = overrides;
   return {
-    asset_class: "Macro",
+    asset_class: rest.asset_class ?? "Macro",
     sub_class: subClass,
-    cycle_phase: "expansion",
-    risk_score: 41,
+    cycle_phase: rest.cycle_phase ?? "expansion",
+    risk_score: rest.risk_score ?? 41,
     metrics: {
       realized_vol: 0.15,
       implied_vol: 0.19,
@@ -18,20 +24,90 @@ function makeAsset(subClass: string): AssetClassMetrics {
       cvar_95: -0.06,
       valuation_score: 0.2,
       expected_return: 0.08,
+      ...metricOverrides,
     },
     history: [{ date: "2026-05-08T00:00:00Z", value: 100 }],
+    as_of: "2026-05-08T12:00:00Z",
+    ...rest,
+  };
+}
+
+function makeYieldCurve(inverted: boolean): YieldCurveResponse {
+  return {
+    points: inverted
+      ? [
+          { tenor: "3M", label: "3-Month", yield_pct: 4.5 },
+          { tenor: "2Y", label: "2-Year", yield_pct: 4.8 },
+          { tenor: "10Y", label: "10-Year", yield_pct: 4.2 },
+          { tenor: "30Y", label: "30-Year", yield_pct: 4.3 },
+        ]
+      : [
+          { tenor: "3M", label: "3-Month", yield_pct: 4.2 },
+          { tenor: "2Y", label: "2-Year", yield_pct: 4.0 },
+          { tenor: "10Y", label: "10-Year", yield_pct: 4.3 },
+          { tenor: "30Y", label: "30-Year", yield_pct: 4.5 },
+        ],
+    data_status: "ok",
+    missing_series: [],
     as_of: "2026-05-08T12:00:00Z",
   };
 }
 
+export const defaultSleeve: SleeveAllocation = {
+  stocks: 40,
+  bonds: 35,
+  alts: 5,
+  cash: 20,
+};
+
+export function makeMarketContext(
+  overrides: Partial<MarketCalloutContext> = {}
+): MarketCalloutContext {
+  return {
+    equities: [
+      makeAsset("large_cap", { risk_score: 45 }),
+      makeAsset("mid_cap", { risk_score: 50 }),
+      makeAsset("small_cap", { risk_score: 55 }),
+    ],
+    credit: [
+      makeAsset("government", { asset_class: "credit" }),
+      makeAsset("corporate_ig", { asset_class: "credit", risk_score: 38 }),
+      makeAsset("corporate_hy", { asset_class: "credit", risk_score: 52 }),
+    ],
+    yieldCurve: makeYieldCurve(false),
+    dataStatus: { overall_status: "ok", as_of: "2026-05-08T12:00:00Z", series: [] },
+    ...overrides,
+  };
+}
+
 export const fixtures = {
-  equities: [makeAsset("Large Cap"), makeAsset("Mid Cap"), makeAsset("Small Cap")],
-  credit: [makeAsset("Government"), makeAsset("Corporate IG"), makeAsset("Corporate HY")],
-  hardAssets: [makeAsset("Gold"), makeAsset("REITs"), makeAsset("Commodities")],
-  cash: [makeAsset("Money Market")],
+  equities: [
+    makeAsset("large_cap"),
+    makeAsset("mid_cap"),
+    makeAsset("small_cap"),
+  ],
+  credit: [
+    makeAsset("government", { asset_class: "credit" }),
+    makeAsset("corporate_ig", { asset_class: "credit" }),
+    makeAsset("corporate_hy", { asset_class: "credit" }),
+  ],
+  hardAssets: [
+    makeAsset("gold", { asset_class: "hard_assets" }),
+    makeAsset("reits", { asset_class: "hard_assets" }),
+    makeAsset("commodities", { asset_class: "hard_assets" }),
+  ],
+  cash: [makeAsset("money_market", { asset_class: "cash" })],
+  yieldCurve: makeYieldCurve(false),
+  yieldCurveInverted: makeYieldCurve(true),
   dataStatus: {
-    overall_status: "ok",
+    overall_status: "ok" as const,
     as_of: "2026-05-08T12:00:00Z",
+    series: [],
+  },
+  dataStatusStale: {
+    overall_status: "stale" as const,
+    as_of: "2026-05-08T12:00:00Z",
+    series: [],
   },
   frontier: {
     frontier: [
@@ -74,3 +150,5 @@ export const fixtures = {
     },
   } satisfies EfficientFrontierResponse,
 };
+
+export { makeAsset, makeYieldCurve };

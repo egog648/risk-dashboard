@@ -111,7 +111,7 @@ Full Swagger UI: http://localhost:8000/docs
 | 12 | 2 | Investment profiler | `12_INVESTMENT_PROFILER.md` | Done |
 | 13 | 2 | Profile → portfolio bridge | `13_PROFILE_TO_PORTFOLIO.md` | Done |
 | 14 | 2 | Client workspace | `14_CLIENT_WORKSPACE.md` | Done |
-| 15 | 2 | Advisor report + market callouts | `15_ADVISOR_REPORT.md` | Partial |
+| 15 | 2 | Advisor report + market callouts | `15_ADVISOR_REPORT.md` | Done |
 | 16 | 2 | Vehicle recommendations | `16_VEHICLE_RECOMMENDATIONS.md` | Done |
 | 17 | 2 | Advanced analytics | `17_ADVANCED_ANALYTICS.md` | Deferred |
 

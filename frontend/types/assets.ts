@@ -6,8 +6,25 @@ export interface YieldCurvePoint {
   yield_pct: number;
 }
 
+export type DataStatusLevel = "ok" | "partial" | "unavailable";
+
 export interface YieldCurveResponse {
   points: YieldCurvePoint[];
+  data_status: DataStatusLevel;
+  missing_series: string[];
+  as_of: string;
+}
+
+export interface SeriesStatus {
+  series_id: string;
+  source: string;
+  last_refreshed: string | null;
+  status: string;
+}
+
+export interface DataStatusResponse {
+  series: SeriesStatus[];
+  overall_status: "ok" | "stale" | "error";
   as_of: string;
 }
 

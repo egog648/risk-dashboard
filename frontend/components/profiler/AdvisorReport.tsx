@@ -1,6 +1,7 @@
 "use client";
 
 import type { AdvisorReport as AdvisorReportData } from "@/lib/profiler/report";
+import { MarketCallouts } from "./MarketCallouts";
 import { VehicleSuggestions } from "./VehicleSuggestions";
 
 interface AdvisorReportProps {
@@ -87,6 +88,8 @@ export function AdvisorReport({ report }: AdvisorReportProps) {
           </div>
         )}
       </div>
+
+      <MarketCallouts sleeveAllocation={sleeve} safetyPct={report.sPct} />
 
       {sleeve.stocks > 0 && (
         <div className="mb-4">

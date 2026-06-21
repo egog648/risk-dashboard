@@ -86,8 +86,8 @@ Goal: systematize client portfolio building with Finesse Funds profiler, custom 
 - Completed: Module 12 investment profiler (`/profiler`, scoring, advisor report shell).
 - Completed: Module 13 profile → portfolio bridge (`mapToPortfolioWeights`, optimizer prefill).
 - Completed: Module 14 client workspace (`/clients`, profiles, portfolios API).
+- Completed: Module 15 advisor report with live market callouts (yield curve, risk scores, credit cycle, data-status).
 - Completed: Module 16 registry-backed vehicle recommendations (`GET /tickers/recommend`, profiler summary integration).
-- Partial: Module 15 advisor report (narrative + vehicles done; live market callouts pending).
 - Deferred: Module 17 advanced analytics.
 
 ### Module Map

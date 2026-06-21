@@ -88,3 +88,24 @@ Implement Module 12 (Investment Profiler) — port `Finesse_Funds_Investment_Pro
 
 ## Next single priority
 Implement Module 15 market callouts — wire live data-status, yield curve, and asset risk scores into the advisor report narrative.
+
+---
+
+# Handoff Note — Module 15 Market Callouts Session
+
+## Completed in this session
+- Added `frontend/lib/reports/buildMarketCallouts.ts` with five profile-aware rules (inverted yield curve, elevated small-cap risk, wide HY spreads, credit contraction, stale data notice).
+- Added `frontend/hooks/useMarketCalloutsData.ts` aggregating equities, credit, yield-curve, and data-status queries.
+- Added `frontend/components/profiler/MarketCallouts.tsx` and wired into `AdvisorReport` between narrative and vehicle sleeves (print included).
+- Extended `frontend/types/assets.ts` with `DataStatusResponse` and full `YieldCurveResponse` fields.
+- Added unit tests (`buildMarketCallouts.test.ts`), component test (`MarketCallouts.test.tsx`), and MSW yield-curve handler.
+- Marked Module 15 Done in `docs/BUILD.md` and `docs/ROADMAP.md`.
+
+## Validation record (this session)
+- **Date/Time:** 2026-06-21 (local)
+- **Frontend unit/integration:** `cd frontend && npm run test` → `8 files, 32 tests passed`
+- **Production build:** `cd frontend && npm run build` → success (13 routes)
+- **Backend contracts:** `cd backend && pytest tests/test_api_smoke.py tests/test_api_contracts.py` → `16 passed`
+
+## Next single priority
+Phase 4 advisory modules are feature-complete (Module 17 deferred). Begin Phase 3 production-readiness planning (prod Docker profiles, observability, methodology hardening) or pick up Module 17 when analytics scope is defined.
