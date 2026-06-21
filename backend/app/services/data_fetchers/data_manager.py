@@ -17,6 +17,7 @@ from app.core.observability import (
 )
 from app.services.data_fetchers.fred_client import FRED_SERIES, fetch_series
 from app.services.data_fetchers.response_cache import invalidate_all
+from app.services.data_fetchers.shiller_client import SHILLER_SERIES_ID, fetch_shiller_cape
 from app.services.data_fetchers.yfinance_client import YFINANCE_TICKERS, fetch_ticker
 
 logger = logging.getLogger(__name__)
@@ -72,24 +73,37 @@ def _log_refresh_summary(summary) -> None:
         )
 
 
+def _refresh_shiller_cape() -> tuple[str, bool]:
+    db = SessionLocal()
+    try:
+        fetch_shiller_cape(db)
+        return SHILLER_SERIES_ID, True
+    except Exception as exc:
+        logger.error("Error refreshing Shiller CAPE: %s", exc)
+        return SHILLER_SERIES_ID, False
+    finally:
+        db.close()
+
+
+def _refresh_target(target: str) -> tuple[str, bool]:
+    if target == SHILLER_SERIES_ID:
+        return _refresh_shiller_cape()
+    if target in FRED_SERIES:
+        return _refresh_fred_series(target)
+    return _refresh_ticker(target)
+
+
 async def refresh_all_data():
     """Fetch and cache all FRED series and yfinance tickers."""
     logger.info("Starting full data refresh...")
-    targets = list(FRED_SERIES.keys()) + list(YFINANCE_TICKERS.keys())
+    targets = list(FRED_SERIES.keys()) + list(YFINANCE_TICKERS.keys()) + [SHILLER_SERIES_ID]
     begin_refresh_run(len(targets))
 
     try:
         loop = asyncio.get_running_loop()
         with ThreadPoolExecutor(max_workers=REFRESH_CONCURRENCY) as pool:
             results = await asyncio.gather(
-                *[
-                    loop.run_in_executor(
-                        pool,
-                        _refresh_fred_series if target in FRED_SERIES else _refresh_ticker,
-                        target,
-                    )
-                    for target in targets
-                ]
+                *[loop.run_in_executor(pool, _refresh_target, target) for target in targets]
             )
 
         for series_id, ok in results:

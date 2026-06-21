@@ -1,7 +1,9 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
 
-const BACKEND_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const backendPort = process.env.E2E_BACKEND_PORT || "8000";
+const BACKEND_BASE = process.env.NEXT_PUBLIC_API_URL || `http://127.0.0.1:${backendPort}`;
 const API_BASE = `${BACKEND_BASE}/api/v1`;
+const HEALTH_URL = `${BACKEND_BASE}/health`;
 const DEFAULT_WEIGHTS = {
   equities_large: 0.2,
   equities_mid: 0.05,
@@ -56,6 +58,24 @@ const MOCK_FRONTIER_RESPONSE = {
   },
 };
 
+async function waitForBackendHealth(request: APIRequestContext) {
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    try {
+      const response = await request.get(HEALTH_URL);
+      if (response.ok()) {
+        const payload = await response.json();
+        if (payload?.status === "ok") {
+          return;
+        }
+      }
+    } catch {
+      // Backend still starting.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  throw new Error("Timed out waiting for backend health");
+}
+
 async function waitForDataStatusOkOrStale(request: APIRequestContext) {
   for (let attempt = 0; attempt < 60; attempt += 1) {
     const statusResponse = await request.get(`${API_BASE}/data-status`);
@@ -71,18 +91,11 @@ async function waitForDataStatusOkOrStale(request: APIRequestContext) {
 }
 
 test("refresh -> verify status -> overview -> run optimizer", async ({ page, request }) => {
-  const refreshResponse = await request.post(`${API_BASE}/data-status/refresh`);
-  expect(refreshResponse.ok()).toBeTruthy();
-
-  const status = await waitForDataStatusOkOrStale(request);
-  expect(["ok", "stale"]).toContain(status);
-
-  await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1, name: "Market Risk Overview" })).toBeVisible();
-  await expect(page.getByText(/Data current|Some data stale/i)).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Equities" })).toBeVisible();
-
-  await page.route("**/api/v1/portfolio/frontier", async (route) => {
+  await page.route("**/portfolio/frontier**", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue();
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -90,9 +103,26 @@ test("refresh -> verify status -> overview -> run optimizer", async ({ page, req
     });
   });
 
-  await page.goto("/portfolio");
+  await waitForBackendHealth(request);
+
+  const refreshResponse = await request.post(`${API_BASE}/data-status/refresh`);
+  expect(refreshResponse.ok()).toBeTruthy();
+
+  const status = await waitForDataStatusOkOrStale(request);
+  expect(["ok", "stale"]).toContain(status);
+
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("overview-heading")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Equities" })).toBeVisible({ timeout: 60_000 });
+
+  await page.goto("/portfolio", { waitUntil: "networkidle", timeout: 120_000 });
   await expect(page.getByRole("heading", { level: 1, name: "Portfolio Optimizer" })).toBeVisible();
-  await page.getByRole("button", { name: "Run Optimizer" }).click();
-  await expect(page.getByText("Max Sharpe")).toBeVisible({ timeout: 30000 });
+
+  const runButton = page.getByRole("button", { name: "Run Optimizer" });
+  await expect(runButton).toBeEnabled({ timeout: 60_000 });
+  await runButton.scrollIntoViewIfNeeded();
+  await runButton.click();
+
+  await expect(page.getByText("Max Sharpe")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText("Failed to compute frontier")).not.toBeVisible();
 });

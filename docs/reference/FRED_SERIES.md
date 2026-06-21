@@ -35,6 +35,7 @@ All FRED series IDs used in this project. Browse at https://fred.stlouisfed.org/
 ## Reserved (not currently refreshed)
 | Series ID | Description | Notes |
 |---|---|---|
+| `SHILLER_CAPE` | Yale Shiller CAPE (via `ie_data.xls`) | Refreshed daily; source `shiller`; used for large-cap earnings yield |
 | `DCOILWTICO` | WTI Crude Oil Price | Available for future commodities work |
 | `CSUSHPISA` | Case-Shiller Home Price Index | Available for future REIT/housing work |
 | `SOFR` | Secured Overnight Financing Rate | Available for future cash work |

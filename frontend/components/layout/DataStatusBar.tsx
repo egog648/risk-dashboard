@@ -27,6 +27,7 @@ export function DataStatusBar() {
 
   return (
     <div
+      data-testid="data-status-bar"
       data-status-bar
       className="h-6 bg-white border-b border-ff-border flex items-center px-6 gap-2 shrink-0"
     >

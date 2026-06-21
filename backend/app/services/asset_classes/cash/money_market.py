@@ -4,6 +4,7 @@ from app.services.asset_classes.base import AssetClassBase
 from app.services.data_fetchers.fred_client import fetch_series
 from app.services.data_fetchers.yfinance_client import fetch_ticker
 from app.services.risk import cycle_analysis, fundamental_scoring
+from app.services.risk.expected_returns import build_asset_class_expected_return
 
 
 class MoneyMarket(AssetClassBase):
@@ -22,7 +23,7 @@ class MoneyMarket(AssetClassBase):
         risk_free = self.get_risk_free(tbill)
         cpi_yoy = self.get_cpi_yoy(cpi)
         real_rate_series = (tbill / 100) - (cpi.pct_change(12) * 100 / 100)
-        exp_return = fundamental_scoring.cash_expected_return(risk_free, cpi_yoy)
+        exp_return = build_asset_class_expected_return(db, "cash")
         val_z = fundamental_scoring.valuation_zscore(risk_free, tbill / 100)
 
         return self.build_ok_response(

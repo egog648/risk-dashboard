@@ -47,7 +47,7 @@ $r2.RawContentLength  # full history
 | Backend pytest | 38 passed |
 | Frontend vitest | 10 files, 40 passed |
 | Frontend build | 13 routes, success |
-| E2e happy path | Failed — overview heading timeout (see KNOWN_GAPS #14) |
+| E2e happy path | **1 passed** (2026-06-21; Playwright dual-server, frontier mocked) |
 | Post-optimization payload/latency numbers | Not yet measured — re-run measurement commands above when backend is warm |
 
 ## Instrumentation added

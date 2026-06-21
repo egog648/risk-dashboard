@@ -19,9 +19,11 @@ Operational guidance for local and containerized development environments.
 - Frontend production build:
   - `cd frontend && npm run build`
   - Validated 2026-06-21: **success (13 routes)**
-- Frontend e2e (requires backend at `:8000`):
+- Frontend e2e (Playwright starts backend + frontend automatically when `CI=true`):
   - `cd frontend && npm run test:e2e`
-  - Note: e2e may fail if overview page timing/selectors drift; re-verify after UI changes
+  - Validated 2026-06-21: **1 passed** (~20–30s on clean ports)
+  - Local reuse: set `PW_REUSE_SERVER=1` if backend/frontend are already running
+  - Custom ports: `E2E_BACKEND_PORT=8010 E2E_FRONTEND_PORT=3010 npm run test:e2e`
 
 ### Focused subsets
 - Backend smoke + contracts:
@@ -30,8 +32,10 @@ Operational guidance for local and containerized development environments.
   - `cd backend && pytest tests/test_ticker_registry.py tests/test_ticker_recommendations.py`
 
 ### Notes
-- The e2e happy path assumes a reachable backend at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`) with valid `FRED_API_KEY` and `TIINGO_API_KEY`.
-- The e2e flow triggers refresh and waits for data status readiness before asserting overview and optimizer behavior.
+- Playwright `webServer` in `frontend/playwright.config.ts` starts uvicorn (`:8000`) and Next dev (`:3000`) when `CI=true` (or when ports are free).
+- Browser API calls use the Next.js rewrite proxy (`/api/backend/*`) to avoid CORS during dev/e2e.
+- The e2e happy path triggers refresh via the test `request` fixture, waits for data status readiness, then asserts overview and optimizer UI.
+- Frontier math is **mocked in e2e** (`POST .../portfolio/frontier` route fixture) for determinism; real frontier remains covered by backend unit tests.
 
 ## CI (GitHub Actions)
 
@@ -42,12 +46,13 @@ Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — runs on 
 | `backend-test` | `cd backend && pytest tests/ -q` | Dummy API keys + `init_db()`; see workflow env |
 | `frontend-test` | `cd frontend && npm run test` | MSW mocks; no backend |
 | `frontend-build` | `cd frontend && npm run build` | Production compile check |
+| `frontend-e2e` | `cd frontend && CI=true npm run test:e2e` | Playwright-managed servers; requires `FRED_API_KEY` + `TIINGO_API_KEY` repo secrets |
 
 View runs: https://github.com/egog648/risk-dashboard/actions
 
-**Not in CI (local only):** Playwright e2e (`npm run test:e2e`) — requires live backend and API keys.
+**GitHub Actions secrets (one-time):** Settings → Secrets and variables → Actions → add `FRED_API_KEY` and `TIINGO_API_KEY`.
 
-**Branch protection (manual):** In GitHub repo settings, require status checks `backend-test`, `frontend-test`, and `frontend-build` on `main` before merge.
+**Branch protection (manual):** In GitHub repo settings, require status checks `backend-test`, `frontend-test`, `frontend-build`, and optionally `frontend-e2e` on `main` before merge.
 
 ## Observability
 

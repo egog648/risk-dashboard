@@ -38,6 +38,8 @@ export interface DataStatusResponse {
   overall_status: "ok" | "stale" | "error";
   as_of: string;
   last_refresh_run?: RefreshRunSummary | null;
+  assumptions_version?: string | null;
+  assumptions_as_of?: string | null;
 }
 
 export interface TimeSeriesPoint {

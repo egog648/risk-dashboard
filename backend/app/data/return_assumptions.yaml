@@ -1,0 +1,98 @@
+version: "2026-06-21.1"
+
+assumptions:
+  equity_real_growth:
+    value: 0.015
+    fallback: 0.015
+    source: "Long-run real earnings growth (~GDP trend); docs/METHODOLOGY.md §4"
+    effective_date: "2026-06-21"
+
+  equity_size_premium_mid:
+    value: 0.005
+    fallback: 0.005
+    source: "Historical mid-cap earnings yield premium over large cap (Ibbotson size premium literature)"
+    effective_date: "2026-06-21"
+
+  equity_size_premium_small:
+    value: 0.015
+    fallback: 0.015
+    source: "Historical small-cap earnings yield premium over large cap (Ibbotson size premium literature)"
+    effective_date: "2026-06-21"
+
+  equity_earnings_yield_fallback:
+    value: 0.05
+    fallback: 0.05
+    source: "Approximate large-cap E/P when Shiller CAPE unavailable (20x P/E proxy)"
+    effective_date: "2026-06-21"
+
+  credit_default_loss_ig:
+    value: 0.003
+    fallback: 0.003
+    source: "Moody's Annual Default Study — long-run IG annual default rate (~0.3%)"
+    effective_date: "2026-06-21"
+
+  credit_default_loss_hy:
+    value: 0.025
+    fallback: 0.025
+    source: "Moody's Annual Default Study — long-run HY annual default rate (~2.5%)"
+    effective_date: "2026-06-21"
+
+  reit_nav_growth:
+    value: 0.02
+    fallback: 0.02
+    source: "Long-run real NAV growth; docs/METHODOLOGY.md §4"
+    effective_date: "2026-06-21"
+
+  reit_rate_drag_threshold:
+    value: 0.03
+    fallback: 0.03
+    source: "Risk-free rate baseline for REIT rate-drag model; docs/METHODOLOGY.md §4"
+    effective_date: "2026-06-21"
+
+  reit_rate_drag_coef:
+    value: 0.5
+    fallback: 0.5
+    source: "Rate-drag dampening coefficient; docs/METHODOLOGY.md §4"
+    effective_date: "2026-06-21"
+
+  reit_dividend_yield_fallback:
+    value: 0.045
+    fallback: 0.045
+    source: "Approximate long-run VNQ dividend yield when Tiingo divCash unavailable"
+    effective_date: "2026-06-21"
+
+  gold_real_rate_premium_coef:
+    value: 0.5
+    fallback: 0.5
+    source: "Negative real-rate premium dampening; docs/METHODOLOGY.md §4"
+    effective_date: "2026-06-21"
+
+  macro_cpi_yoy_fallback:
+    value: 2.5
+    fallback: 2.5
+    source: "Fallback CPI YoY (percent) when CPIAUCSL series insufficient"
+    effective_date: "2026-06-21"
+
+  macro_risk_free_fallback:
+    value: 0.04
+    fallback: 0.04
+    source: "Fallback 3-month T-bill yield (decimal) when DTB3 unavailable"
+    effective_date: "2026-06-21"
+
+  macro_ytm_10y_fallback:
+    value: 0.04
+    fallback: 0.04
+    source: "Fallback 10Y Treasury yield (decimal) when DGS10 unavailable"
+    effective_date: "2026-06-21"
+
+  macro_hy_spread_fallback_bps:
+    value: 400
+    fallback: 400
+    source: "Fallback HY OAS spread (basis points) when BAMLH0A0HYM2 unavailable"
+    effective_date: "2026-06-21"
+
+  macro_ig_spread_fallback_bps:
+    value: 100
+    fallback: 100
+    source: "Fallback IG OAS spread (basis points) when BAMLC0A0CM unavailable"
+    effective_date: "2026-06-21"

@@ -279,3 +279,50 @@ Extend `TimingMiddleware` with refresh-failure tracking and documented threshold
 
 ## Next single priority
 Methodology hardening — replace hardcoded expected-return constants with sourced/versioned assumptions (`KNOWN_GAPS.md` #5).
+
+---
+
+# Handoff Note — Methodology Hardening (Gap #5)
+
+## Completed
+- Added `backend/app/data/return_assumptions.yaml` and `return_assumptions.py` — versioned registry with source citations and fallbacks (`2026-06-21.1`).
+- Added `shiller_client.py` + `shiller_parser.py` — live Yale Shiller CAPE for large-cap earnings yield (`1 / CAPE`).
+- Extended Tiingo client with `fetch_trailing_dividend_yield()` for VNQ REIT dividend yield.
+- Refactored `expected_returns.py` — unified `resolve_return_inputs`, `compute_expected_return`, `build_asset_class_expected_return`.
+- Updated all 9 asset classes to use shared resolver (eliminates optimizer/card drift).
+- Parameterized `fundamental_scoring.py` coefficients via registry.
+- Exposed `assumptions_version` / `assumptions_as_of` on `DataStatusResponse`.
+- Registered Shiller CAPE in daily data refresh (`data_manager.py`).
+- Added `backend/tests/test_return_assumptions.py` (8 tests).
+- Closed `KNOWN_GAPS.md` #5; updated `METHODOLOGY.md`, `ROADMAP.md`, `05_RISK_ENGINE.md`, `FRED_SERIES.md`.
+
+## Validation record (2026-06-21)
+- **Backend pytest:** `pytest tests/` → **57 passed**
+- **New backend tests:** 8 (`test_return_assumptions.py`)
+
+## Next single priority
+E2e in CI — see handoff note below (completed 2026-06-21).
+
+---
+
+# Handoff Note — E2E in CI (Gap #14)
+
+## Completed
+- Stabilized `frontend/e2e/happy-path.spec.ts`: backend health wait, data-status poll, stable `data-testid` selectors, portfolio `networkidle` hydration wait, mocked frontier route.
+- Dual-server Playwright config in `frontend/playwright.config.ts` (uvicorn + Next dev; `global-setup.ts` runs `init_db()`).
+- Browser API calls use Next.js rewrite proxy (`/api/backend/*`) via `frontend/lib/api/client.ts` to avoid CORS during e2e.
+- Added `frontend-e2e` job to `.github/workflows/ci.yml` (15 min timeout, Playwright Chromium install, failure artifacts).
+- Simplified `frontend/app/page.tsx` to client-rendered overview (avoids HydrationBoundary SSR serialization error).
+- Closed `KNOWN_GAPS.md` #14; updated `RUNBOOKS.md`, `ROADMAP.md` Phase 3 priority #5.
+
+## Validation record (2026-06-21)
+- **Frontend e2e (local):** `CI=true npm run test:e2e` → **1 passed** (~20–30s; Playwright-managed servers on `:8000`/`:3000` or custom `E2E_*_PORT`)
+- **Frontend vitest:** `npm run test` → **47 passed** (after client proxy change)
+- **CI `frontend-e2e`:** requires `FRED_API_KEY` + `TIINGO_API_KEY` GitHub Actions secrets — verify first green run after secrets are configured
+
+## Intentional deferrals
+- Real frontier in e2e (frontier POST remains mocked for determinism)
+- Seeded SQLite for fork PRs without secrets
+
+## Next single priority
+Module 17 Advanced Analytics (deferred) or low-priority gaps #8, #15, #16.

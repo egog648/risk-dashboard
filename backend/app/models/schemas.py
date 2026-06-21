@@ -149,6 +149,8 @@ class DataStatusResponse(BaseModel):
     overall_status: Literal["ok", "stale", "error"]
     as_of: datetime
     last_refresh_run: RefreshRunSummary | None = None
+    assumptions_version: str | None = None
+    assumptions_as_of: datetime | None = None
 
 
 # --- Custom ticker registry ---

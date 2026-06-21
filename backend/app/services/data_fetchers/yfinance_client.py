@@ -99,6 +99,16 @@ def _fetch_and_cache(ticker: str, db: Session, start_date: datetime) -> pd.Serie
 
 def _fetch_from_tiingo(ticker: str, start_date: datetime) -> pd.Series:
     """Fetch full daily adjusted time series from Tiingo."""
+    rows = _fetch_tiingo_rows(ticker, start_date)
+    series = pd.Series(
+        {pd.Timestamp(row["date"]): float(row["adjClose"]) for row in rows},
+        dtype=float,
+    )
+    return series.sort_index()
+
+
+def _fetch_tiingo_rows(ticker: str, start_date: datetime) -> list[dict]:
+    """Fetch raw Tiingo daily price rows (includes divCash when available)."""
     url = f"{_TIINGO_BASE}/{ticker.lower()}/prices"
     headers = {
         "Authorization": f"Token {settings.TIINGO_API_KEY}",
@@ -117,12 +127,47 @@ def _fetch_from_tiingo(ticker: str, start_date: datetime) -> pd.Series:
     data = resp.json()
     if not data:
         raise ValueError(f"Tiingo returned empty data for {ticker}")
+    return data
 
-    series = pd.Series(
-        {pd.Timestamp(row["date"]): float(row["adjClose"]) for row in data},
-        dtype=float,
-    )
-    return series.sort_index()
+
+def compute_trailing_dividend_yield(rows: list[dict], trailing_days: int = 252) -> float | None:
+    """Compute trailing dividend yield from Tiingo rows (divCash / adjClose)."""
+    if not rows:
+        return None
+
+    frame = pd.DataFrame(rows)
+    if frame.empty or "adjClose" not in frame.columns:
+        return None
+
+    frame["date"] = pd.to_datetime(frame["date"])
+    frame = frame.sort_values("date").tail(trailing_days)
+    latest_price = float(frame["adjClose"].iloc[-1])
+    if latest_price <= 0:
+        return None
+
+    dividends = frame.get("divCash", pd.Series(0.0, index=frame.index)).fillna(0.0)
+    trailing_dividends = float(dividends.sum())
+    if trailing_dividends <= 0:
+        return None
+
+    return round(trailing_dividends / latest_price, 6)
+
+
+def fetch_trailing_dividend_yield(
+    ticker: str,
+    db: Session,
+    *,
+    lookback_years: int = 2,
+    trailing_days: int = 252,
+) -> float | None:
+    """Return trailing dividend yield for a ticker using Tiingo divCash."""
+    start_date = datetime.utcnow() - timedelta(days=365 * lookback_years)
+    try:
+        rows = _fetch_tiingo_rows(ticker, start_date)
+        return compute_trailing_dividend_yield(rows, trailing_days=trailing_days)
+    except Exception as exc:
+        logger.warning("Trailing dividend yield fetch failed for %s: %s", ticker, exc)
+        return None
 
 
 def _load_from_db(ticker: str, db: Session, start_date: datetime) -> pd.Series:

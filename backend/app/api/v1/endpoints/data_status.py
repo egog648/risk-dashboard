@@ -8,6 +8,7 @@ from app.core.observability import get_refresh_run_summary
 from app.models.db_models import DataRefreshLog
 from app.models.schemas import DataStatusResponse, SeriesStatus
 from app.services.data_fetchers.data_manager import refresh_all_data
+from app.services.risk.return_assumptions import get_assumptions_metadata
 
 router = APIRouter()
 
@@ -37,11 +38,15 @@ def get_data_status(db: Session = Depends(get_db)):
     else:
         overall = "ok"
 
+    assumptions_meta = get_assumptions_metadata()
+
     return DataStatusResponse(
         series=series_statuses,
         overall_status=overall,
         as_of=datetime.now(UTC),
         last_refresh_run=get_refresh_run_summary(),
+        assumptions_version=str(assumptions_meta["assumptions_version"]),
+        assumptions_as_of=assumptions_meta["assumptions_as_of"],
     )
 
 

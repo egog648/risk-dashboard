@@ -106,17 +106,18 @@ This feeds directly into the risk score (expensive = higher risk score) and is t
 
 ## 4. Expected Returns (Base Case)
 
-Computed in `backend/app/services/risk/fundamental_scoring.py`. These are **fundamental-based forward estimates**, not historical mean returns. This distinction matters: historical means embed the valuation level at which you bought; these estimates are anchored to current economics.
+Computed via the unified resolver in `backend/app/services/risk/expected_returns.py` using formulas in `fundamental_scoring.py`. Inputs come from live data (FRED, Shiller CAPE, Tiingo dividends) and the versioned registry `backend/app/data/return_assumptions.yaml`. These are **fundamental-based forward estimates**, not historical mean returns.
+
+**Assumptions version:** exposed on `GET /api/v1/data-status` as `assumptions_version` (currently `2026-06-21.1`). See the YAML registry for source citations and fallbacks.
 
 ### Equities — Gordon Growth Model
 ```
-expected_return = earnings_yield + CPI_YoY/100 + 0.015
+expected_return = earnings_yield + CPI_YoY/100 + equity_real_growth
 ```
-- `earnings_yield`: E/P ratio (inverse of P/E). Defaults: large cap 5.0%, mid 5.5%, small 6.5%
-- `CPI_YoY`: trailing 12-month CPI inflation
-- `0.015`: assumed long-run real earnings growth (≈ GDP trend)
-
-**Limitation**: The earnings yield inputs are currently hardcoded approximations. A future improvement would pull live CAPE data from a source like Shiller's dataset and compute earnings yield dynamically.
+- `earnings_yield` (large cap): live from Yale Shiller CAPE (`1 / CAPE`), fallback 5.0% from registry
+- `earnings_yield` (mid/small): large-cap yield + size premium (+50 bps mid, +150 bps small) from registry
+- `CPI_YoY`: trailing 12-month CPI inflation (FRED CPIAUCSL)
+- `equity_real_growth`: 1.5% from registry (long-run real earnings growth ≈ GDP trend)
 
 ### Credit — Yield-to-Maturity Minus Default Losses
 ```
@@ -124,23 +125,23 @@ expected_return = YTM + spread/100 − expected_default_loss
 ```
 - `YTM`: 10-year Treasury yield (DGS10)
 - `spread`: OAS spread in basis points (BAMLC0A0CM for IG, BAMLH0A0HYM2 for HY)
-- `expected_default_loss`: 0.3% for IG, 2.5% for HY (long-run averages)
+- `expected_default_loss`: 0.3% IG / 2.5% HY from registry (Moody's long-run annual default rates)
 
 ### Gold & Commodities — Inflation Hedge Model
 ```
-real_rate_premium = max(−real_rate, 0) × 0.5
+real_rate_premium = max(−real_rate, 0) × gold_real_rate_premium_coef
 expected_return = CPI_YoY/100 + real_rate_premium
 ```
-Gold performs best when real rates are negative. The `0.5` coefficient dampens the premium (empirical calibration).
+Gold performs best when real rates are negative. `gold_real_rate_premium_coef` (0.5) is from the assumptions registry.
 
 ### REITs — Dividend Yield + NAV Growth
 ```
-rate_drag = max(risk_free_rate − 0.03, 0) × 0.5
-expected_return = dividend_yield + 0.02 − rate_drag
+rate_drag = max(risk_free_rate − reit_rate_drag_threshold, 0) × reit_rate_drag_coef
+expected_return = dividend_yield + reit_nav_growth − rate_drag
 ```
-- `dividend_yield`: hardcoded at 4.5% (approximate long-run REIT yield)
-- `0.02`: assumed long-run real NAV growth
-- `rate_drag`: rising rates compress REIT multiples
+- `dividend_yield`: trailing 12-month Tiingo `divCash` / `adjClose` for VNQ, fallback 4.5% from registry
+- `reit_nav_growth`: 2% from registry (long-run real NAV growth)
+- `reit_rate_drag_threshold` / `reit_rate_drag_coef`: from registry (rate-drag model)
 
 ### Cash — Real Return
 ```
@@ -279,8 +280,7 @@ Computed in `backend/app/services/risk/efficient_frontier.py` via the `/api/v1/p
 
 | Limitation | Impact | Planned Fix |
 |---|---|---|
-| Earnings yields are hardcoded | Equities expected return is approximate | Pull live CAPE from Shiller dataset |
-| REIT dividend yield is hardcoded at 4.5% | Slightly inaccurate | Fetch from FRED or Tiingo |
+| Mid/small cap use size premium over large-cap yield | No independent small/mid fundamental feed | Paid fundamentals API or ETF-level earnings data |
 | Cycle thresholds are rule-based, not ML | May lag turning points | Regime model (HMM or logistic) |
 | Valuation z-score uses price, not fundamentals | Trend-following bias | Use CAPE or P/B for equities |
 | No forward vol adjustment | VaR uses historical window only | Incorporate VIX term structure |

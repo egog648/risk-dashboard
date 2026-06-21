@@ -19,7 +19,12 @@ export default function OverviewPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-ff-navy">Market Risk Overview</h1>
+        <h1
+          data-testid="overview-heading"
+          className="text-2xl font-bold text-ff-navy"
+        >
+          Market Risk Overview
+        </h1>
         <p className="text-ff-text-secondary mt-1 text-sm">
           Forward-looking risk and expected return across major asset classes
         </p>

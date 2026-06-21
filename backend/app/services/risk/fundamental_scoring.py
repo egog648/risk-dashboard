@@ -11,6 +11,8 @@ NOT purely historical mean returns.
 import numpy as np
 import pandas as pd
 
+from app.services.risk.return_assumptions import get_assumption
+
 
 def valuation_zscore(current: float, series: pd.Series, window_years: int = 20) -> float:
     """Z-score of current value vs historical distribution."""
@@ -25,18 +27,20 @@ def valuation_zscore(current: float, series: pd.Series, window_years: int = 20) 
 def equity_expected_return(
     sp500: pd.Series | None = None,
     earnings_yield: float | None = None,
-    cpi_yoy: float = 2.5,
+    cpi_yoy: float | None = None,
+    real_growth: float | None = None,
 ) -> float:
-    """Earnings yield + inflation = nominal expected return proxy (Gordon Growth Model).
+    """Earnings yield + inflation + real growth = nominal expected return (Gordon Growth Model).
 
-    earnings_yield: E/P ratio (inverse of P/E). If None, uses 1/CAPE from SP500 trend.
+    earnings_yield should be supplied by the return-inputs resolver (Shiller CAPE for large cap).
     """
     if earnings_yield is None:
-        # Rough proxy: assume 20x P/E → 5% earnings yield
-        earnings_yield = 0.05
+        earnings_yield = get_assumption("equity_earnings_yield_fallback", use_fallback=True)
+    if cpi_yoy is None:
+        cpi_yoy = get_assumption("macro_cpi_yoy_fallback", use_fallback=True)
+    if real_growth is None:
+        real_growth = get_assumption("equity_real_growth")
 
-    # Nominal expected return ≈ earnings yield + long-run earnings growth (≈ GDP ~ inflation + 1.5%)
-    real_growth = 0.015
     return round(earnings_yield + cpi_yoy / 100 + real_growth, 4)
 
 
@@ -52,13 +56,13 @@ def credit_expected_return(
 def gold_expected_return(
     real_rate: float,
     cpi_yoy: float,
+    *,
+    real_rate_premium_coef: float | None = None,
 ) -> float:
-    """Gold expected return proxy: negative real rates are positive for gold.
-
-    When real rates are negative, gold tends to outperform.
-    """
-    # Gold roughly tracks inflation + premium from negative real rates
-    real_rate_premium = max(-real_rate, 0) * 0.5
+    """Gold expected return proxy: negative real rates are positive for gold."""
+    if real_rate_premium_coef is None:
+        real_rate_premium_coef = get_assumption("gold_real_rate_premium_coef")
+    real_rate_premium = max(-real_rate, 0) * real_rate_premium_coef
     return round(cpi_yoy / 100 + real_rate_premium, 4)
 
 
@@ -66,10 +70,19 @@ def reit_expected_return(
     dividend_yield: float,
     cap_rate: float | None = None,
     risk_free_rate: float = 0.04,
+    *,
+    nav_growth: float | None = None,
+    rate_drag_threshold: float | None = None,
+    rate_drag_coef: float | None = None,
 ) -> float:
     """REIT expected return = dividend yield + NAV growth, adjusted for rate environment."""
-    nav_growth = 0.02  # Long-run real NAV growth
-    rate_drag = max(risk_free_rate - 0.03, 0) * 0.5  # Rising rates compress multiples
+    if nav_growth is None:
+        nav_growth = get_assumption("reit_nav_growth")
+    if rate_drag_threshold is None:
+        rate_drag_threshold = get_assumption("reit_rate_drag_threshold")
+    if rate_drag_coef is None:
+        rate_drag_coef = get_assumption("reit_rate_drag_coef")
+    rate_drag = max(risk_free_rate - rate_drag_threshold, 0) * rate_drag_coef
     return round(dividend_yield + nav_growth - rate_drag, 4)
 
 

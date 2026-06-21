@@ -4,6 +4,7 @@ from app.services.asset_classes.base import AssetClassBase
 from app.services.data_fetchers.fred_client import fetch_series
 from app.services.data_fetchers.yfinance_client import fetch_ticker
 from app.services.risk import cycle_analysis, fundamental_scoring
+from app.services.risk.expected_returns import build_asset_class_expected_return
 
 
 class REITs(AssetClassBase):
@@ -20,10 +21,7 @@ class REITs(AssetClassBase):
         tbill = fetch_series("DTB3", db)
 
         risk_free = self.get_risk_free(tbill)
-        exp_return = fundamental_scoring.reit_expected_return(
-            dividend_yield=0.045,
-            risk_free_rate=risk_free,
-        )
+        exp_return = build_asset_class_expected_return(db, "hard_assets_reits")
         val_z = fundamental_scoring.valuation_zscore(float(prices.iloc[-1]), prices)
 
         return self.build_ok_response(

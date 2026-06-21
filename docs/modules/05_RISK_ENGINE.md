@@ -7,6 +7,10 @@ A library of composable risk functions used by all asset class modules.
 - `backend/app/services/risk/metrics.py`
 - `backend/app/services/risk/cycle_analysis.py`
 - `backend/app/services/risk/fundamental_scoring.py`
+- `backend/app/services/risk/expected_returns.py`
+- `backend/app/services/risk/return_assumptions.py`
+- `backend/app/data/return_assumptions.yaml`
+- `backend/app/services/data_fetchers/shiller_client.py`
 - `backend/app/services/risk/efficient_frontier.py`
 
 ---
@@ -65,6 +69,14 @@ Returns -3 to +3 (clipped). Positive = expensive. Negative = cheap.
 | `gold_expected_return` | CPI inflation + negative real rate premium |
 | `reit_expected_return` | Dividend yield + NAV growth – rate drag |
 | `cash_expected_return` | T-bill yield – CPI inflation (real return) |
+
+### Expected Return Resolver (`expected_returns.py`)
+- `resolve_return_inputs(db)` — live Shiller CAPE, Tiingo VNQ dividend yield, registry coefficients
+- `compute_expected_return(key, ctx, inputs)` — per canonical weight key
+- `build_portfolio_expected_returns(db)` — all optimizer keys
+- `build_asset_class_expected_return(db, key)` — shared path for asset-class cards
+
+Assumptions version traceable via `GET /api/v1/data-status` → `assumptions_version`.
 
 ---
 

@@ -4,6 +4,7 @@ from app.services.asset_classes.base import AssetClassBase
 from app.services.data_fetchers.fred_client import fetch_series
 from app.services.data_fetchers.yfinance_client import fetch_ticker
 from app.services.risk import cycle_analysis, fundamental_scoring
+from app.services.risk.expected_returns import build_asset_class_expected_return
 
 
 class Commodities(AssetClassBase):
@@ -21,8 +22,7 @@ class Commodities(AssetClassBase):
 
         risk_free = self.get_risk_free(tbill)
         cpi_yoy = self.get_cpi_yoy(cpi)
-        real_rate = risk_free - cpi_yoy / 100
-        exp_return = fundamental_scoring.gold_expected_return(real_rate, cpi_yoy)
+        exp_return = build_asset_class_expected_return(db, "hard_assets_commodities")
         val_z = fundamental_scoring.valuation_zscore(float(prices.iloc[-1]), prices)
 
         return self.build_ok_response(

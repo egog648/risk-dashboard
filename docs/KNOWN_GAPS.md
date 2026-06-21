@@ -13,7 +13,7 @@ This file tracks confirmed limitations and unresolved risks that matter for road
 |---|-----|----------|-------|--------|
 | 3 | Dev-oriented Docker compose defaults | Medium | Phase 3 | Resolved |
 | 4 | CI enforcement (core tests) | Medium | Phase 2 | Resolved |
-| 5 | Hardcoded expected-return assumptions | Medium | Phase 3 | Open |
+| 5 | Hardcoded expected-return assumptions | Medium | Phase 3 | Resolved |
 | 8 | Custom tickers excluded from frontier | Low | Deferred | Open |
 | 13 | Clients/profiler/tickers test coverage | Medium | Phase 3 | Resolved |
 | 14 | E2E mocks optimizer response | Low | Phase 2 tail | Open |
@@ -43,16 +43,14 @@ Resolved gaps (#1, #2, #7, #9–#12) are listed below for history.
 ### 4) Limited integration and end-to-end test coverage / no CI
 - Severity: Medium
 - Status: **Partially resolved** (2026-06-21)
-- Resolution: GitHub Actions CI enforces backend pytest, frontend Vitest, and `next build` on push/PR to `main` (`.github/workflows/ci.yml`). Playwright e2e remains local-only; clients/profiler coverage gap tracked in #13.
-- Remaining: E2e in CI (#14); expand test coverage for advisory surfaces (#13).
+- Resolution: GitHub Actions CI enforces backend pytest, frontend Vitest, `next build`, and Playwright e2e on push/PR to `main` (`.github/workflows/ci.yml`).
+- Remaining: expand test coverage for advisory surfaces (#13) — resolved separately.
 - Roadmap phase: Phase 2 (core CI closed); e2e deferred
 
 ### 5) Hardcoded expected-return assumptions
 - Severity: Medium
-- Impact: Some return projections rely on static constants in `expected_returns.py` (e.g. earnings yield defaults, REIT spread assumptions).
-- Current workaround: Treat estimates as directional for prototype use.
-- Planned fix: Replace with sourced/calibrated inputs; version assumptions in `METHODOLOGY.md`.
-- Roadmap phase: Phase 3
+- Status: Resolved (2026-06-21 methodology hardening)
+- Resolution: Versioned registry in `backend/app/data/return_assumptions.yaml`; live Shiller CAPE for large-cap earnings yield; Tiingo trailing dividend yield for VNQ; unified resolver in `expected_returns.py` used by asset classes and optimizer. Traceability via `assumptions_version` on `/api/v1/data-status`.
 
 ### 6) Documentation drift risk
 - Severity: Medium
@@ -94,10 +92,9 @@ Resolved gaps (#1, #2, #7, #9–#12) are listed below for history.
 
 ### 14) E2E happy path mocks optimizer response
 - Severity: Low
-- Impact: Playwright e2e does not exercise real frontier math end-to-end; overview step may also fail on selector/timing drift.
-- Evidence: `frontend/e2e/happy-path.spec.ts` routes `POST /api/v1/portfolio/frontier` to a fixture; 2026-06-21 validation run failed on overview heading visibility.
-- Planned fix: Optional e2e mode with real backend frontier; stabilize overview selectors/waits.
-- Roadmap phase: Phase 2 tail
+- Status: **Resolved** (2026-06-21) — e2e wired into CI as `frontend-e2e` job; spec stabilized with health wait, stable selectors, dual-server Playwright config, and `/api/backend` proxy for browser requests.
+- Intentional deferral: frontier remains mocked in e2e (`POST .../portfolio/frontier` fixture) for determinism; real frontier math is covered by backend tests. Optional follow-up: `E2E_REAL_FRONTIER=true` mode.
+- Roadmap phase: Phase 3 (closed)
 
 ### 15) `datetime.utcnow()` deprecation warnings
 - Severity: Low

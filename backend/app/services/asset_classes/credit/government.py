@@ -4,6 +4,7 @@ from app.services.asset_classes.base import AssetClassBase
 from app.services.data_fetchers.fred_client import fetch_series
 from app.services.data_fetchers.yfinance_client import fetch_ticker
 from app.services.risk import cycle_analysis, fundamental_scoring
+from app.services.risk.expected_returns import build_asset_class_expected_return
 
 
 class GovernmentBonds(AssetClassBase):
@@ -23,9 +24,7 @@ class GovernmentBonds(AssetClassBase):
 
         risk_free = self.get_risk_free(tbill)
         ytm = float(dgs10.iloc[-1]) / 100 if not dgs10.empty else 0.04
-        exp_return = fundamental_scoring.credit_expected_return(
-            yield_to_maturity=ytm, spread=0, expected_default_loss=0
-        )
+        exp_return = build_asset_class_expected_return(db, "credit_government")
         val_z = fundamental_scoring.valuation_zscore(ytm, dgs10)
 
         return self.build_ok_response(

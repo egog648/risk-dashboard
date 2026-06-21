@@ -57,16 +57,21 @@ async def test_refresh_all_data_records_metrics(monkeypatch: pytest.MonkeyPatch)
 
     monkeypatch.setattr(data_manager, "_refresh_fred_series", ok_fred)
     monkeypatch.setattr(data_manager, "_refresh_ticker", fail_ticker)
+    monkeypatch.setattr(data_manager, "_refresh_shiller_cape", lambda: (data_manager.SHILLER_SERIES_ID, True))
     monkeypatch.setattr(data_manager, "invalidate_all", lambda: None)
 
-    targets = list(data_manager.FRED_SERIES.keys()) + list(data_manager.YFINANCE_TICKERS.keys())
+    targets = (
+        list(data_manager.FRED_SERIES.keys())
+        + list(data_manager.YFINANCE_TICKERS.keys())
+        + [data_manager.SHILLER_SERIES_ID]
+    )
     await data_manager.refresh_all_data()
 
     summary = get_refresh_run_summary()
     assert summary is not None
     assert summary.state == "completed"
     assert summary.total_series == len(targets)
-    assert summary.ok_count == len(data_manager.FRED_SERIES)
+    assert summary.ok_count == len(data_manager.FRED_SERIES) + 1
     assert summary.error_count == len(data_manager.YFINANCE_TICKERS)
 
 
@@ -84,6 +89,8 @@ async def test_data_status_includes_refresh_run(client):
     assert parsed.last_refresh_run is not None
     assert parsed.last_refresh_run.state == "completed"
     assert parsed.last_refresh_run.ok_count == 2
+    assert parsed.assumptions_version == "2026-06-21.1"
+    assert parsed.assumptions_as_of is not None
     RefreshRunSummary.model_validate(parsed.last_refresh_run.model_dump())
 
 

@@ -6,7 +6,7 @@ This roadmap moves the project from prototype to stable and handoff-friendly dev
 
 **Phase 3 — Production Readiness** (active)
 
-**Next single priority:** Replace hardcoded expected-return constants with sourced/versioned assumptions (`KNOWN_GAPS.md` #5).
+**Next single priority:** Module 17 Advanced Analytics (deferred) or low-priority gaps #8, #15, #16.
 
 Phases 1, 2, and 4 are closed. Refactor Track and post-refactor enhancements are complete. CI enforces backend pytest, frontend Vitest, and `next build` on every push/PR to `main`.
 
@@ -35,17 +35,17 @@ Goal: make core API/UI behavior reliable under normal local usage.
 ## Phase 2 — Strengthen Quality Gates
 Goal: reduce regression risk and improve confidence in iterative changes.
 
-**Status: Closed** (CI workflow added; e2e remains local-only)
+**Status: Closed** (CI workflow added; e2e in CI as of 2026-06-21)
 
 ### Progress Snapshot
 - Completed: backend API contract test suite with schema/field assertions for data status, yield curve, all-asset endpoints, and portfolio frontier.
 - Completed: frontend integration test harness (Vitest + Testing Library + MSW).
 - Completed: Playwright e2e happy-path spec (refresh → status → overview → optimizer).
 - Completed: local green run records for smoke/contracts, integration, and e2e.
-- Completed: GitHub Actions CI (`.github/workflows/ci.yml`) — `backend-test`, `frontend-test`, `frontend-build` on push/PR to `main`.
+- Completed: GitHub Actions CI (`.github/workflows/ci.yml`) — `backend-test`, `frontend-test`, `frontend-build`, `frontend-e2e` on push/PR to `main`.
 
 ### Remaining (deferred)
-- Playwright e2e in CI (requires API secrets; see `KNOWN_GAPS.md` #14).
+- Real frontier in e2e (optional; frontier mocked by design — see `KNOWN_GAPS.md` #14).
 
 ### Exit Criteria
 - CI/local test workflow covers core backend contracts and primary frontend API flows.
@@ -63,8 +63,8 @@ Goal: make runtime and methodology resilient enough for more serious deployment/
 1. ~~**Production Docker profile**~~ — **Done** (`docker-compose.prod.yml`; closes gap #3).
 2. ~~**Integration tests**~~ — **Done** (`test_clients.py` + `/clients`, `/profiler`, `/tickers` Vitest; closes gap #13).
 3. ~~**Observability**~~ — **Done** (refresh-run metrics on `/data-status`, slow-request warnings in `TimingMiddleware`).
-4. **Methodology hardening** — replace hardcoded expected-return constants with sourced/versioned assumptions.
-5. **E2e in CI** — optional follow-up once gap #14 stability is addressed.
+4. ~~**Methodology hardening**~~ — **Done** (versioned `return_assumptions.yaml`, Shiller CAPE + Tiingo VNQ dividend yield, unified resolver; closes gap #5).
+5. ~~**E2e in CI**~~ — **Done** (`frontend-e2e` job, dual-server Playwright config, stabilized happy-path spec; closes gap #14).
 
 ### Exit Criteria
 - Production-mode startup path is documented and validated.

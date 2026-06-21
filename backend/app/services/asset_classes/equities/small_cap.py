@@ -4,6 +4,7 @@ from app.services.asset_classes.base import AssetClassBase
 from app.services.data_fetchers.fred_client import fetch_series
 from app.services.data_fetchers.yfinance_client import fetch_ticker
 from app.services.risk import cycle_analysis, fundamental_scoring
+from app.services.risk.expected_returns import build_asset_class_expected_return
 
 
 class SmallCapEquities(AssetClassBase):
@@ -23,9 +24,7 @@ class SmallCapEquities(AssetClassBase):
 
         risk_free = self.get_risk_free(tbill)
         cpi_yoy = self.get_cpi_yoy(cpi)
-        exp_return = fundamental_scoring.equity_expected_return(
-            earnings_yield=0.065, cpi_yoy=cpi_yoy
-        )
+        exp_return = build_asset_class_expected_return(db, "equities_small")
         val_z = fundamental_scoring.valuation_zscore(float(prices.iloc[-1]), prices)
         implied_vol = round(float(vix.iloc[-1]) / 100, 4) if not vix.empty else None
 
