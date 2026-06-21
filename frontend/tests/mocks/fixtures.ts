@@ -2,6 +2,8 @@ import type { AssetClassMetrics, YieldCurveResponse } from "@/types/assets";
 import type { MarketCalloutContext } from "@/lib/reports/buildMarketCallouts";
 import type { SleeveAllocation } from "@/lib/profiler/report";
 import type { EfficientFrontierResponse } from "@/types/portfolio";
+import type { Client, ClientProfile, Portfolio, PortfolioOutline } from "@/types/clients";
+import { DEFAULT_WEIGHTS } from "@/types/portfolio";
 
 function makeAsset(
   subClass: string,
@@ -148,7 +150,83 @@ export const fixtures = {
       equities_large: { equities_large: 1, cash: 0.1 },
       cash: { equities_large: 0.1, cash: 1 },
     },
+    suggested: {
+      expected_return: 0.075,
+      volatility: 0.095,
+      sharpe: 0.68,
+      weights: { equities_large: 0.25, credit_government: 0.25, cash: 0.5 },
+    },
   } satisfies EfficientFrontierResponse,
+  clients: [
+    {
+      id: 1,
+      name: "Smith Family",
+      notes: null,
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: "2026-01-01T00:00:00Z",
+      current_profile_id: 10,
+      portfolio_count: 1,
+    },
+  ] satisfies Client[],
+  clientProfiles: [
+    {
+      id: 10,
+      client_id: 1,
+      is_portfolio_override: false,
+      answers: {
+        q1: "D",
+        q2: "D",
+        q3: "D",
+        q4: "D",
+        q5: "D",
+        q6: "D",
+        q7: "D",
+        q8: "D",
+        q9: "D",
+        q10: "D",
+        q11: "D",
+        q12: "D",
+      },
+      growth_pct: 70,
+      income_pct: 15,
+      safety_pct: 15,
+      raw_aggression_pct: 100,
+      governed_aggression_pct: 100,
+      governor_cap_pct: 100,
+      profile_label: "Growth-Oriented",
+      risk_label: "Aggressive",
+      questions_answered: 12,
+      is_current: true,
+      saved_at: "2026-01-01T00:00:00Z",
+    },
+  ] satisfies ClientProfile[],
+  clientPortfolios: {
+    1: [
+      {
+        id: 5,
+        client_id: 1,
+        name: "Retirement",
+        notes: null,
+        profile_override_id: null,
+        effective_profile_id: 10,
+        created_at: "2026-01-01T00:00:00Z",
+        updated_at: "2026-01-01T00:00:00Z",
+      },
+    ],
+  } satisfies Record<number, Portfolio[]>,
+  portfolioOutlines: [
+    {
+      id: 1,
+      portfolio_id: 5,
+      profile_id: 10,
+      sleeve_allocation: { stocks: 60, bonds: 20, alts: 10, cash: 10 },
+      weights: DEFAULT_WEIGHTS,
+      vehicles: {},
+      narrative: "Test outline",
+      status: "draft",
+      created_at: "2026-01-01T00:00:00Z",
+    },
+  ] satisfies PortfolioOutline[],
 };
 
 export { makeAsset, makeYieldCurve };

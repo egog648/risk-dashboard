@@ -28,14 +28,19 @@ export function SendToOptimizerButton({ weights }: SendToOptimizerButtonProps) {
   );
 }
 
-export function loadPrefillWeights(): PortfolioWeights | null {
+/** Read prefill weights without consuming them. */
+export function peekPrefillWeights(): PortfolioWeights | null {
   if (typeof window === "undefined") return null;
   const raw = sessionStorage.getItem(STORAGE_KEY);
   if (!raw) return null;
-  sessionStorage.removeItem(STORAGE_KEY);
   try {
     return JSON.parse(raw) as PortfolioWeights;
   } catch {
     return null;
   }
+}
+
+export function clearPrefillWeights(): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(STORAGE_KEY);
 }

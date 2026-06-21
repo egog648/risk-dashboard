@@ -4,12 +4,20 @@ import type { PortfolioWeights } from "@/types/portfolio";
 
 interface FrontierMutationInput {
   weights: PortfolioWeights;
+  suggestedWeights?: PortfolioWeights | null;
   highDetail?: boolean;
 }
 
 export function useEfficientFrontier() {
   return useMutation({
-    mutationFn: ({ weights, highDetail = false }: FrontierMutationInput) =>
-      fetchEfficientFrontier(weights, highDetail),
+    mutationKey: ["efficientFrontier"],
+    mutationFn: ({ weights, suggestedWeights, highDetail = false }: FrontierMutationInput) =>
+      fetchEfficientFrontier(
+        {
+          weights,
+          ...(suggestedWeights ? { suggested_weights: suggestedWeights } : {}),
+        },
+        highDetail
+      ),
   });
 }

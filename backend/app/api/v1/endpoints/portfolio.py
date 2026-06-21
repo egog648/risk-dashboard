@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models.schemas import EfficientFrontierResponse, PortfolioWeights
+from app.models.schemas import EfficientFrontierResponse, FrontierComputeRequest, PortfolioWeights
 from app.services.data_fetchers.yfinance_client import fetch_ticker
 from app.services.risk.efficient_frontier import build_frontier, weights_to_frontier_point
 from app.services.risk.expected_returns import (
@@ -27,9 +27,21 @@ ASSET_TICKERS = {
 }
 
 
+def _normalize_weights(
+    weights: PortfolioWeights,
+    available: set[str],
+) -> dict[str, float]:
+    weights_dict = weights.model_dump()
+    filtered = {k: v for k, v in weights_dict.items() if k in available}
+    total = sum(filtered.values())
+    if total > 0:
+        filtered = {k: v / total for k, v in filtered.items()}
+    return filtered
+
+
 @router.post("/frontier", response_model=EfficientFrontierResponse)
 def compute_frontier(
-    weights: PortfolioWeights,
+    body: FrontierComputeRequest,
     db: Session = Depends(get_db),
     high_detail: bool = Query(default=False),
 ):
@@ -46,7 +58,7 @@ def compute_frontier(
         raise HTTPException(status_code=503, detail="Insufficient price data. Run data refresh first.")
 
     expected_ret = build_portfolio_expected_returns(db)
-    if set(weights.model_dump().keys()) != CANONICAL_WEIGHT_KEYS:
+    if set(body.weights.model_dump().keys()) != CANONICAL_WEIGHT_KEYS:
         raise HTTPException(status_code=500, detail="Portfolio weight schema out of sync with optimizer keys.")
 
     try:
@@ -59,16 +71,17 @@ def compute_frontier(
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
-    weights_dict = weights.model_dump()
     available = set(price_dict.keys())
-    filtered = {k: v for k, v in weights_dict.items() if k in available}
-    total = sum(filtered.values())
-    if total > 0:
-        filtered = {k: v / total for k, v in filtered.items()}
+    filtered = _normalize_weights(body.weights, available)
 
     mu = result["mu"]
     cov = result["cov"]
     current_point = weights_to_frontier_point(filtered, mu, cov)
+
+    suggested_point = None
+    if body.suggested_weights is not None:
+        suggested_filtered = _normalize_weights(body.suggested_weights, available)
+        suggested_point = weights_to_frontier_point(suggested_filtered, mu, cov)
 
     return EfficientFrontierResponse(
         frontier=result["frontier"],
@@ -77,4 +90,5 @@ def compute_frontier(
         current=current_point,
         monte_carlo=result["monte_carlo"],
         correlation_matrix=result["correlation_matrix"],
+        suggested=suggested_point,
     )

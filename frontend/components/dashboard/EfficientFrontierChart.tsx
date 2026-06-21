@@ -57,19 +57,20 @@ export function EfficientFrontierChart({ data }: EfficientFrontierChartProps) {
   };
 
   return (
-    <div className="w-full h-72">
-      <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart margin={{ top: 10, right: 20, bottom: 20, left: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} />
-          <XAxis
+    <div className="w-full">
+      <div className="w-full h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart margin={{ top: 16, right: 24, bottom: 36, left: 48 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} />
+            <XAxis
             dataKey="x"
             type="number"
             domain={["auto", "auto"]}
             tickFormatter={(v) => `${v.toFixed(0)}%`}
             label={{
               value: "Volatility",
-              position: "insideBottom",
-              offset: -10,
+              position: "bottom",
+              offset: 0,
               fill: CHART_THEME.tick,
               fontSize: 11,
             }}
@@ -116,7 +117,6 @@ export function EfficientFrontierChart({ data }: EfficientFrontierChartProps) {
               fill="#22c55e"
               stroke={REFERENCE_STROKE}
               strokeWidth={1.5}
-              label={{ value: "Max Sharpe", fill: "#22c55e", fontSize: 10, dy: -10 }}
             />
           )}
           {data.min_vol && (
@@ -127,7 +127,6 @@ export function EfficientFrontierChart({ data }: EfficientFrontierChartProps) {
               fill="#a855f7"
               stroke={REFERENCE_STROKE}
               strokeWidth={1.5}
-              label={{ value: "Min Vol", fill: "#a855f7", fontSize: 10, dy: -10 }}
             />
           )}
           {data.current && (
@@ -138,14 +137,14 @@ export function EfficientFrontierChart({ data }: EfficientFrontierChartProps) {
               fill="#f97316"
               stroke={REFERENCE_STROKE}
               strokeWidth={2}
-              label={{ value: "Current", fill: "#f97316", fontSize: 10, dy: -10 }}
             />
           )}
-        </ComposedChart>
-      </ResponsiveContainer>
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
 
       {/* Legend */}
-      <div className="flex gap-4 justify-center mt-2 text-xs text-ff-muted">
+      <div className="flex flex-wrap gap-4 justify-center mt-3 text-xs text-ff-muted">
         <LegendDot color="#3b82f6" label="Monte Carlo" />
         <LegendDot color="#f59e0b" label="Frontier" />
         <LegendDot color="#22c55e" label="Max Sharpe" />

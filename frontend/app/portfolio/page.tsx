@@ -1,17 +1,27 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useEfficientFrontier } from "@/hooks/useEfficientFrontier";
+import { fetchEfficientFrontier } from "@/lib/api/portfolio";
+import { useAllClientPortfolios } from "@/hooks/useAllClientPortfolios";
+import { useSelectedPortfolioLoadout } from "@/hooks/useSelectedPortfolioLoadout";
 import { AllocationSliders } from "@/components/portfolio/AllocationSliders";
-import { FrontierControls } from "@/components/portfolio/FrontierControls";
+import {
+  FrontierControls,
+  type SelectedPortfolio,
+} from "@/components/portfolio/FrontierControls";
 import { FrontierDetailToggle } from "@/components/portfolio/FrontierDetailToggle";
+import { PortfolioSelector } from "@/components/portfolio/PortfolioSelector";
 import { EfficientFrontierChart } from "@/components/dashboard/lazyDashboard";
 import { CorrelationHeatmap } from "@/components/charts/CorrelationHeatmap";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
-import { loadPrefillWeights } from "@/components/profiler/SendToOptimizerButton";
-import { DEFAULT_WEIGHTS } from "@/types/portfolio";
-import type { PortfolioWeights } from "@/types/portfolio";
+import {
+  clearPrefillWeights,
+  peekPrefillWeights,
+} from "@/components/profiler/SendToOptimizerButton";
+import { DEFAULT_WEIGHTS, WEIGHT_LABELS } from "@/types/portfolio";
+import type { EfficientFrontierResponse, FrontierPoint, PortfolioWeights } from "@/types/portfolio";
 
 function PortfolioPageSkeleton() {
   return (
@@ -28,31 +38,176 @@ function PortfolioPageSkeleton() {
   );
 }
 
+function frontierWeightsToPortfolioWeights(
+  weights: Record<string, number>
+): PortfolioWeights {
+  const keys = Object.keys(WEIGHT_LABELS) as Array<keyof PortfolioWeights>;
+  const mapped = keys.reduce((acc, key) => {
+    acc[key] = weights[key] ?? 0;
+    return acc;
+  }, {} as PortfolioWeights);
+
+  const total = Object.values(mapped).reduce((sum, value) => sum + value, 0);
+  if (total <= 0) return mapped;
+
+  return keys.reduce((acc, key) => {
+    acc[key] = mapped[key] / total;
+    return acc;
+  }, {} as PortfolioWeights);
+}
+
 function PortfolioPageContent() {
   const searchParams = useSearchParams();
   const [weights, setWeights] = useState<PortfolioWeights>(DEFAULT_WEIGHTS);
   const [highDetail, setHighDetail] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
-  const { mutate, data, isPending, isError } = useEfficientFrontier();
+  const [prefillBanner, setPrefillBanner] = useState<string | null>(null);
+  const [selectedPortfolio, setSelectedPortfolio] = useState<SelectedPortfolio | null>(
+    null
+  );
+  const { mutate, reset, data: mutationData, isPending: isMutationPending, isError: isMutationError } =
+    useEfficientFrontier();
+  const [prefillData, setPrefillData] = useState<EfficientFrontierResponse | null>(null);
+  const [isPrefillPending, setIsPrefillPending] = useState(false);
+  const [isPrefillError, setIsPrefillError] = useState(false);
+  const prefillStartedRef = useRef(false);
+  const lastPortfolioRunRef = useRef<{
+    loadKey: string;
+    weightsKey: string;
+    suggestedKey: string;
+  } | null>(null);
+
+  const { grouped, isLoading: listLoading } = useAllClientPortfolios();
+  const loadout = useSelectedPortfolioLoadout();
+
+  const data = mutationData ?? prefillData;
+  const isPending = isMutationPending || isPrefillPending || loadout.isLoading;
+  const isError = isMutationError || isPrefillError;
+
+  const runFrontier = useCallback(
+    (
+      nextWeights: PortfolioWeights,
+      suggestedWeights?: PortfolioWeights | null,
+      highDetailMode = highDetail
+    ) => {
+      setSelectedPortfolio(null);
+      setPrefillData(null);
+      setIsPrefillError(false);
+      mutate({
+        weights: nextWeights,
+        suggestedWeights,
+        highDetail: highDetailMode,
+      });
+    },
+    [highDetail, mutate]
+  );
 
   useEffect(() => {
-    if (searchParams?.get("prefill") === "1") {
-      const prefill = loadPrefillWeights();
-      if (prefill) {
-        setWeights(prefill);
-        setPrefilled(true);
-        mutate({ weights: prefill, highDetail });
-      }
-    }
+    if (searchParams?.get("prefill") !== "1") return;
+
+    const prefill = peekPrefillWeights();
+    if (!prefill) return;
+
+    setWeights(prefill);
+    setPrefilled(true);
+    setPrefillBanner("Weights pre-filled from client portfolio outline");
+
+    if (prefillStartedRef.current) return;
+    prefillStartedRef.current = true;
+
+    setIsPrefillPending(true);
+    setIsPrefillError(false);
+    fetchEfficientFrontier({ weights: prefill }, highDetail)
+      .then((result) => {
+        setPrefillData(result);
+        clearPrefillWeights();
+      })
+      .catch(() => {
+        prefillStartedRef.current = false;
+        setIsPrefillError(true);
+      })
+      .finally(() => {
+        setIsPrefillPending(false);
+      });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!loadout.hasSelection || loadout.isLoading) return;
+    if (!loadout.client || !loadout.portfolio) return;
+
+    const loadKey = `${loadout.clientId}:${loadout.portfolioId}`;
+    const weightsKey = JSON.stringify(loadout.sliderWeights);
+    const suggestedKey = loadout.suggestedWeights
+      ? JSON.stringify(loadout.suggestedWeights)
+      : "";
+    const last = lastPortfolioRunRef.current;
+    if (
+      last?.loadKey === loadKey &&
+      last.weightsKey === weightsKey &&
+      last.suggestedKey === suggestedKey
+    ) {
+      return;
+    }
+    lastPortfolioRunRef.current = { loadKey, weightsKey, suggestedKey };
+
+    setWeights(loadout.sliderWeights);
+    setPrefilled(true);
+    setPrefillBanner(
+      loadout.loadedFromOutline
+        ? `Loaded from ${loadout.client.name} — ${loadout.portfolio.name}`
+        : `Loaded suggested weights for ${loadout.client.name} — ${loadout.portfolio.name}`
+    );
+
+    runFrontier(loadout.sliderWeights, loadout.suggestedWeights);
+  }, [
+    loadout.hasSelection,
+    loadout.isLoading,
+    loadout.client,
+    loadout.portfolio,
+    loadout.clientId,
+    loadout.portfolioId,
+    loadout.sliderWeights,
+    loadout.suggestedWeights,
+    loadout.loadedFromOutline,
+    runFrontier,
+  ]);
+
+  useEffect(() => {
+    setSelectedPortfolio(null);
+  }, [data]);
 
   const handleWeightsChange = (newWeights: PortfolioWeights) => {
     setWeights(newWeights);
   };
 
   const handleRun = () => {
-    mutate({ weights, highDetail });
+    runFrontier(weights, loadout.suggestedWeights);
   };
+
+  const handleApplyOptimized = (point: FrontierPoint) => {
+    setWeights(frontierWeightsToPortfolioWeights(point.weights));
+  };
+
+  const handlePortfolioSelect = (clientId: number | null, portfolioId: number | null) => {
+    lastPortfolioRunRef.current = null;
+    reset();
+    setPrefillBanner(null);
+    setPrefilled(false);
+    if (!clientId || !portfolioId) {
+      setWeights(DEFAULT_WEIGHTS);
+      setPrefillData(null);
+      setSelectedPortfolio(null);
+    }
+    loadout.selectPortfolio(clientId, portfolioId);
+  };
+
+  const showSuggested =
+    loadout.hasSelection &&
+    Boolean(loadout.effectiveProfile && loadout.effectiveProfile.questions_answered >= 10);
+
+  const suggestedRiskLabel = loadout.effectiveProfile
+    ? `${loadout.effectiveProfile.risk_label} (${loadout.effectiveProfile.governed_aggression_pct}%)`
+    : undefined;
 
   return (
     <div className="space-y-8">
@@ -62,12 +217,22 @@ function PortfolioPageContent() {
           Adjust allocation weights and explore the efficient frontier using
           fundamental-based expected returns
         </p>
-        {prefilled && (
-          <p className="text-xs text-ff-green mt-1 font-semibold">
-            Weights pre-filled from client portfolio outline
-          </p>
+        {prefilled && prefillBanner && (
+          <p className="text-xs text-ff-green mt-1 font-semibold">{prefillBanner}</p>
         )}
       </div>
+
+      <PortfolioSelector
+        grouped={grouped}
+        selectedClientId={loadout.clientId}
+        selectedPortfolioId={loadout.portfolioId}
+        isLoading={loadout.isLoading}
+        listLoading={listLoading}
+        clientName={loadout.client?.name}
+        portfolioName={loadout.portfolio?.name}
+        effectiveProfile={loadout.effectiveProfile}
+        onSelect={handlePortfolioSelect}
+      />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <FinesseCard title="Portfolio Weights" padding="lg" className="xl:col-span-1">
@@ -96,12 +261,18 @@ function PortfolioPageContent() {
           )}
           {data && (
             <>
-              <EfficientFrontierChart data={data} />
               <FrontierControls
                 maxSharpe={data.max_sharpe}
                 minVol={data.min_vol}
                 current={data.current}
+                suggested={data.suggested ?? null}
+                showSuggested={showSuggested}
+                suggestedRiskLabel={suggestedRiskLabel}
+                selected={selectedPortfolio}
+                onSelect={setSelectedPortfolio}
+                onApplyOptimized={handleApplyOptimized}
               />
+              <EfficientFrontierChart data={data} />
             </>
           )}
         </FinesseCard>

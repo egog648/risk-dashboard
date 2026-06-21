@@ -8,6 +8,7 @@ from app.models.schemas import (
     AssetClassMetrics,
     DataStatusResponse,
     EfficientFrontierResponse,
+    FrontierComputeRequest,
     PortfolioWeights,
     YieldCurveResponse,
 )
@@ -174,7 +175,10 @@ async def test_portfolio_frontier_contract(client, monkeypatch):
     )
     monkeypatch.setattr(portfolio, "weights_to_frontier_point", lambda _weights, _mu, _cov: point)
 
-    response = await client.post("/api/v1/portfolio/frontier", json=PortfolioWeights().model_dump())
+    response = await client.post(
+        "/api/v1/portfolio/frontier",
+        json=FrontierComputeRequest(weights=PortfolioWeights()).model_dump(),
+    )
     assert response.status_code == 200
 
     payload = response.json()
@@ -182,3 +186,59 @@ async def test_portfolio_frontier_contract(client, monkeypatch):
     assert len(parsed.frontier) == 1
     assert parsed.max_sharpe.weights
     assert parsed.correlation_matrix
+    assert parsed.suggested is None
+
+
+@pytest.mark.asyncio
+async def test_portfolio_frontier_suggested_contract(client, monkeypatch):
+    now = datetime.now(UTC)
+    sample_series = pd.Series([100.0, 101.0, 102.0, 103.0], index=pd.date_range(end=now, periods=4, freq="D"))
+
+    monkeypatch.setattr(portfolio, "fetch_ticker", lambda _ticker, _db: sample_series)
+    monkeypatch.setattr(
+        portfolio,
+        "build_portfolio_expected_returns",
+        lambda _db: {key: 0.06 for key in portfolio.ASSET_TICKERS},
+    )
+
+    point = {
+        "expected_return": 0.08,
+        "volatility": 0.12,
+        "sharpe": 0.67,
+        "weights": {key: 0.1 for key in portfolio.ASSET_TICKERS},
+    }
+    mu = pd.Series({key: 0.06 for key in portfolio.ASSET_TICKERS})
+    cov = pd.DataFrame(
+        0.01,
+        index=list(portfolio.ASSET_TICKERS.keys()),
+        columns=list(portfolio.ASSET_TICKERS.keys()),
+    )
+    monkeypatch.setattr(
+        portfolio,
+        "build_frontier",
+        lambda _price_dict, _expected_ret, **kwargs: {
+            "frontier": [point],
+            "max_sharpe": point,
+            "min_vol": point,
+            "monte_carlo": [point],
+            "correlation_matrix": {"equities_large": {"equities_large": 1.0}},
+            "mu": mu,
+            "cov": cov,
+        },
+    )
+    monkeypatch.setattr(portfolio, "weights_to_frontier_point", lambda _weights, _mu, _cov: point)
+
+    suggested_weights = PortfolioWeights(equities_large=0.4, cash=0.6)
+    response = await client.post(
+        "/api/v1/portfolio/frontier",
+        json=FrontierComputeRequest(
+            weights=PortfolioWeights(),
+            suggested_weights=suggested_weights,
+        ).model_dump(),
+    )
+    assert response.status_code == 200
+
+    payload = response.json()
+    parsed = EfficientFrontierResponse.model_validate(payload)
+    assert parsed.suggested is not None
+    assert parsed.suggested.expected_return == 0.08

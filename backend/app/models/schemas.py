@@ -82,6 +82,23 @@ class FrontierPoint(BaseModel):
     weights: dict[str, float]
 
 
+class FrontierComputeRequest(BaseModel):
+    weights: PortfolioWeights
+    suggested_weights: PortfolioWeights | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_legacy_flat_weights(cls, data: Any) -> Any:
+        """Accept legacy flat PortfolioWeights bodies for backward compatibility."""
+        if not isinstance(data, dict):
+            return data
+        if "weights" in data:
+            return data
+        if "equities_large" in data or "cash" in data:
+            return {"weights": data}
+        return data
+
+
 class EfficientFrontierResponse(BaseModel):
     frontier: list[FrontierPoint]           # Frontier curve points
     max_sharpe: FrontierPoint               # Max Sharpe portfolio
@@ -89,6 +106,7 @@ class EfficientFrontierResponse(BaseModel):
     current: FrontierPoint                  # Current allocation
     monte_carlo: list[FrontierPoint]        # 2000 random portfolios
     correlation_matrix: dict[str, dict[str, float]]
+    suggested: FrontierPoint | None = None
 
 
 # --- Yield curve ---

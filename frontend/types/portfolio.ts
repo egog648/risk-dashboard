@@ -18,6 +18,11 @@ export interface FrontierPoint {
   weights: Record<string, number>;
 }
 
+export interface FrontierRequest {
+  weights: PortfolioWeights;
+  suggested_weights?: PortfolioWeights;
+}
+
 export interface EfficientFrontierResponse {
   frontier: FrontierPoint[];
   max_sharpe: FrontierPoint;
@@ -25,6 +30,7 @@ export interface EfficientFrontierResponse {
   current: FrontierPoint;
   monte_carlo: FrontierPoint[];
   correlation_matrix: Record<string, Record<string, number>>;
+  suggested?: FrontierPoint | null;
 }
 
 export const DEFAULT_WEIGHTS: PortfolioWeights = {
