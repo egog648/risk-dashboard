@@ -7,6 +7,8 @@ Fetch macro data from FRED and market proxy prices via a Tiingo-backed fetcher, 
 - `backend/app/services/data_fetchers/fred_client.py`
 - `backend/app/services/data_fetchers/yfinance_client.py`
 - `backend/app/services/data_fetchers/data_manager.py`
+- `backend/app/services/data_fetchers/cache.py` — request-scoped memoization
+- `backend/app/services/data_fetchers/series_store.py` — incremental upsert helper
 - `backend/app/models/db_models.py` (TimeSeries, DataRefreshLog tables)
 
 ## Data Sources
@@ -37,10 +39,14 @@ Key tickers:
 
 ```
 fetch_series(series_id, db):
+  → Check request-scoped memo (same HTTP request)
+    HIT → return cached Series
   → Check DataRefreshLog: was this series fetched < 23 hours ago?
     YES → load from TimeSeries table (no network call)
-    NO  → call provider API, save to DB, update log
+    NO  → call provider API, upsert tail to DB, update log
 ```
+
+Scheduled refresh runs with concurrency cap of 4 workers (`data_manager.py`).
 
 ## Initial Data Seed
 

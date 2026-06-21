@@ -1,18 +1,16 @@
-import pandas as pd
 from sqlalchemy.orm import Session
 
-from app.models.schemas import AssetClassMetrics, RiskMetrics
 from app.services.asset_classes.base import AssetClassBase
 from app.services.data_fetchers.fred_client import fetch_series
 from app.services.data_fetchers.yfinance_client import fetch_ticker
-from app.services.risk import cycle_analysis, metrics, fundamental_scoring
+from app.services.risk import cycle_analysis, fundamental_scoring
 
 
 class LargeCapEquities(AssetClassBase):
     asset_class = "equities"
     sub_class = "large_cap"
 
-    def get_metrics(self, db: Session) -> AssetClassMetrics:
+    def get_metrics(self, db: Session):
         prices = fetch_ticker("SPY", db)
         if not self._is_usable_price_series(prices):
             return self._degraded_metrics(missing_series=["SPY"])
@@ -23,47 +21,17 @@ class LargeCapEquities(AssetClassBase):
         cpi = fetch_series("CPIAUCSL", db)
         tbill = fetch_series("DTB3", db)
 
-        risk_free = float(tbill.iloc[-1]) / 100 if not tbill.empty else 0.04
-
-        vol = metrics.realized_volatility(prices)
-        sharpe = metrics.sharpe_ratio(prices, risk_free)
-        sortino = metrics.sortino_ratio(prices, risk_free)
-        drawdown = metrics.max_drawdown(prices)
-        var95 = metrics.value_at_risk(prices, 0.95)
-        var99 = metrics.value_at_risk(prices, 0.99)
-        cvar = metrics.conditional_var(prices, 0.95)
-
-        cpi_yoy = (
-            float(cpi.iloc[-1] / cpi.iloc[-12] - 1) * 100
-            if len(cpi) >= 12 else 2.5
-        )
+        risk_free = self.get_risk_free(tbill)
+        cpi_yoy = self.get_cpi_yoy(cpi)
         exp_return = fundamental_scoring.equity_expected_return(cpi_yoy=cpi_yoy)
         val_z = fundamental_scoring.valuation_zscore(float(prices.iloc[-1]), prices)
+        implied_vol = round(float(vix.iloc[-1]) / 100, 4) if not vix.empty else None
 
-        risk_score = metrics.compute_risk_score(vol, drawdown, var99, val_z)
-
-        cycle = cycle_analysis.detect_equity_cycle(yield_curve, vix, sp500)
-
-        history = self._build_history(prices)  # ~3 years of daily
-
-        return AssetClassMetrics(
-            asset_class=self.asset_class,
-            sub_class=self.sub_class,
-            cycle_phase=cycle,
-            risk_score=risk_score,
-            metrics=RiskMetrics(
-                realized_vol=round(vol, 4),
-                implied_vol=round(float(vix.iloc[-1]) / 100, 4) if not vix.empty else None,
-                sharpe_ratio=round(sharpe, 3) if not pd.isna(sharpe) else None,
-                sortino_ratio=round(sortino, 3) if not pd.isna(sortino) else None,
-                max_drawdown=round(drawdown, 4),
-                var_95=round(var95, 4),
-                var_99=round(var99, 4),
-                cvar_95=round(cvar, 4),
-                valuation_score=round(val_z, 3),
-                expected_return=round(exp_return, 4),
-            ),
-            data_status="ok",
-            history=history,
-            as_of=self._now(),
+        return self.build_ok_response(
+            prices=prices,
+            cycle_phase=cycle_analysis.detect_equity_cycle(yield_curve, vix, sp500),
+            risk_free=risk_free,
+            exp_return=exp_return,
+            val_z=val_z,
+            implied_vol=implied_vol,
         )

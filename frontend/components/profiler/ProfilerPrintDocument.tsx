@@ -1,17 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
-import { ObjectiveBar, OBJECTIVE_COLORS } from "@/components/finesse/ObjectiveBar";
+import { ObjectiveBar } from "@/components/finesse/ObjectiveBar";
 import { TriangleChart } from "./TriangleChart";
 import { AggressionGauge } from "./AggressionGauge";
 import { ImplementationDetail } from "./ImplementationDetail";
 import { AdvisorReport } from "./AdvisorReport";
 import { ProfilerQuestionsPrintSection } from "./ProfilerQuestionsPrintSection";
 import type { ProfilerAnswers } from "@/lib/profiler/questions";
-import { computeScores } from "@/lib/profiler/scoring";
-import { buildAdvisorReport, formatProfilerDate } from "@/lib/profiler/report";
+import { useAdvisorReport } from "@/hooks/useAdvisorReport";
 
 export interface ProfilerPrintDocumentProps {
   answers: ProfilerAnswers;
@@ -19,29 +18,17 @@ export interface ProfilerPrintDocumentProps {
 }
 
 export function ProfilerPrintDocument({ answers, clientName = "" }: ProfilerPrintDocumentProps) {
-  const displayName = clientName.trim() || "Client";
   const [portalReady, setPortalReady] = useState(false);
-  const [preparedDate, setPreparedDate] = useState<string | null>(null);
+  const { scores, report, reportDate, allocationBars, displayName } = useAdvisorReport(
+    answers,
+    clientName
+  );
 
   useEffect(() => {
-    setPreparedDate(formatProfilerDate());
     setPortalReady(true);
   }, []);
 
-  const scores = useMemo(() => computeScores(answers), [answers]);
-  const report = useMemo(
-    () =>
-      preparedDate ? buildAdvisorReport(answers, displayName, preparedDate) : null,
-    [answers, displayName, preparedDate]
-  );
-
-  const allocationBars = [
-    { label: "Equities", sub: "Growth", pct: scores.g * 100, color: OBJECTIVE_COLORS.growth },
-    { label: "Fixed Income", sub: "Income", pct: scores.i * 100, color: OBJECTIVE_COLORS.income },
-    { label: "Cash / Money Market", sub: "Safety", pct: scores.s * 100, color: OBJECTIVE_COLORS.safety },
-  ];
-
-  if (!portalReady || !preparedDate) {
+  if (!portalReady || !reportDate) {
     return null;
   }
 
@@ -55,7 +42,7 @@ export function ProfilerPrintDocument({ answers, clientName = "" }: ProfilerPrin
           Investment Profile &amp; Risk Questionnaire
         </h1>
         <p className="text-xs text-white/75 mt-1">
-          Prepared for {displayName} — {preparedDate}
+          Prepared for {displayName} — {reportDate}
         </p>
       </div>
 

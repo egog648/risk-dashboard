@@ -1,21 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/lib/api/client";
-
-interface DataStatus {
-  overall_status: "ok" | "stale" | "error";
-  as_of: string;
-}
+import { DATA_STATUS_STALE_TIME, fetchDataStatus } from "@/lib/api/dataStatus";
 
 export function DataStatusBar() {
-  const { data } = useQuery<DataStatus>({
+  const { data } = useQuery({
     queryKey: ["data-status"],
-    queryFn: async () => {
-      const res = await apiClient.get("/data-status");
-      return res.data;
-    },
-    staleTime: 60 * 1000,
+    queryFn: fetchDataStatus,
+    staleTime: DATA_STATUS_STALE_TIME,
     retry: false,
   });
 

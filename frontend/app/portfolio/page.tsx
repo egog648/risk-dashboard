@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useEfficientFrontier } from "@/hooks/useEfficientFrontier";
 import { AllocationSliders } from "@/components/portfolio/AllocationSliders";
+import { FrontierControls } from "@/components/portfolio/FrontierControls";
 import { EfficientFrontierChart } from "@/components/dashboard/EfficientFrontierChart";
 import { CorrelationHeatmap } from "@/components/charts/CorrelationHeatmap";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
@@ -87,7 +88,16 @@ function PortfolioPageContent() {
               Failed to compute frontier. Ensure backend data is seeded.
             </div>
           )}
-          {data && <EfficientFrontierChart data={data} />}
+          {data && (
+            <>
+              <EfficientFrontierChart data={data} />
+              <FrontierControls
+                maxSharpe={data.max_sharpe}
+                minVol={data.min_vol}
+                current={data.current}
+              />
+            </>
+          )}
         </FinesseCard>
       </div>
 

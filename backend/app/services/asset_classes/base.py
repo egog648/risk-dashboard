@@ -14,6 +14,8 @@ import pandas as pd
 from sqlalchemy.orm import Session
 
 from app.models.schemas import AssetClassMetrics, RiskMetrics, TimeSeriesPoint
+from app.services.risk import metrics
+from app.services.risk.expected_returns import get_cpi_yoy, get_risk_free
 
 
 class AssetClassBase(ABC):
@@ -56,5 +58,81 @@ class AssetClassBase(ABC):
             data_status="unavailable",
             missing_series=missing_series,
             history=[],
+            as_of=self._now(),
+        )
+
+    @staticmethod
+    def get_cpi_yoy(cpi: pd.Series) -> float:
+        return get_cpi_yoy(cpi)
+
+    @staticmethod
+    def get_risk_free(tbill: pd.Series, default: float = 0.04) -> float:
+        return get_risk_free(tbill, default)
+
+    def build_standard_risk_stats(
+        self,
+        prices: pd.Series,
+        risk_free: float,
+    ) -> dict[str, float]:
+        """Compute the standard risk metric block shared by all asset classes."""
+        return {
+            "vol": metrics.realized_volatility(prices),
+            "sharpe": metrics.sharpe_ratio(prices, risk_free),
+            "sortino": metrics.sortino_ratio(prices, risk_free),
+            "drawdown": metrics.max_drawdown(prices),
+            "var95": metrics.value_at_risk(prices, 0.95),
+            "var99": metrics.value_at_risk(prices, 0.99),
+            "cvar": metrics.conditional_var(prices, 0.95),
+        }
+
+    def build_risk_metrics(
+        self,
+        prices: pd.Series,
+        risk_free: float,
+        exp_return: float,
+        val_z: float,
+        *,
+        implied_vol: float | None = None,
+    ) -> RiskMetrics:
+        """Assemble RiskMetrics from standard stats plus class-specific fields."""
+        stats = self.build_standard_risk_stats(prices, risk_free)
+        return RiskMetrics(
+            realized_vol=round(stats["vol"], 4),
+            implied_vol=implied_vol,
+            sharpe_ratio=round(stats["sharpe"], 3) if not pd.isna(stats["sharpe"]) else None,
+            sortino_ratio=round(stats["sortino"], 3) if not pd.isna(stats["sortino"]) else None,
+            max_drawdown=round(stats["drawdown"], 4),
+            var_95=round(stats["var95"], 4),
+            var_99=round(stats["var99"], 4),
+            cvar_95=round(stats["cvar"], 4),
+            valuation_score=round(val_z, 3),
+            expected_return=round(exp_return, 4),
+        )
+
+    def build_ok_response(
+        self,
+        *,
+        prices: pd.Series,
+        cycle_phase: str,
+        risk_free: float,
+        exp_return: float,
+        val_z: float,
+        implied_vol: float | None = None,
+    ) -> AssetClassMetrics:
+        """Build a successful AssetClassMetrics response."""
+        stats = self.build_standard_risk_stats(prices, risk_free)
+        risk_score = metrics.compute_risk_score(
+            stats["vol"], stats["drawdown"], stats["var99"], val_z
+        )
+        return AssetClassMetrics(
+            asset_class=self.asset_class,
+            sub_class=self.sub_class,
+            cycle_phase=cycle_phase,
+            risk_score=risk_score,
+            metrics=self.build_risk_metrics(
+                prices, risk_free, exp_return, val_z, implied_vol=implied_vol
+            ),
+            data_status="ok",
+            history=self._build_history(prices),
             as_of=self._now(),
         )

@@ -141,7 +141,7 @@ async def test_portfolio_frontier_contract(client, monkeypatch):
     monkeypatch.setattr(portfolio, "fetch_ticker", lambda _ticker, _db: sample_series)
     monkeypatch.setattr(
         portfolio,
-        "_get_expected_returns",
+        "build_portfolio_expected_returns",
         lambda _db: {key: 0.06 for key in portfolio.ASSET_TICKERS},
     )
 
@@ -151,6 +151,12 @@ async def test_portfolio_frontier_contract(client, monkeypatch):
         "sharpe": 0.67,
         "weights": {key: 0.1 for key in portfolio.ASSET_TICKERS},
     }
+    mu = pd.Series({key: 0.06 for key in portfolio.ASSET_TICKERS})
+    cov = pd.DataFrame(
+        0.01,
+        index=list(portfolio.ASSET_TICKERS.keys()),
+        columns=list(portfolio.ASSET_TICKERS.keys()),
+    )
     monkeypatch.setattr(
         portfolio,
         "build_frontier",
@@ -160,6 +166,8 @@ async def test_portfolio_frontier_contract(client, monkeypatch):
             "min_vol": point,
             "monte_carlo": [point],
             "correlation_matrix": {"equities_large": {"equities_large": 1.0}},
+            "mu": mu,
+            "cov": cov,
         },
     )
     monkeypatch.setattr(portfolio, "weights_to_frontier_point", lambda _weights, _mu, _cov: point)

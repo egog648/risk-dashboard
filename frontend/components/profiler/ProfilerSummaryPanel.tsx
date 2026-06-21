@@ -1,19 +1,18 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
-import { ObjectiveBar, OBJECTIVE_COLORS } from "@/components/finesse/ObjectiveBar";
+import { ObjectiveBar } from "@/components/finesse/ObjectiveBar";
 import { TriangleChart } from "./TriangleChart";
 import { AggressionGauge } from "./AggressionGauge";
 import { ImplementationDetail } from "./ImplementationDetail";
 import { AdvisorReport } from "./AdvisorReport";
 import { SendToOptimizerButton } from "./SendToOptimizerButton";
 import type { ProfilerAnswers } from "@/lib/profiler/questions";
-import { computeScores } from "@/lib/profiler/scoring";
-import { buildAdvisorReport, formatProfilerDate } from "@/lib/profiler/report";
 import { mapToPortfolioWeights } from "@/lib/profiler/mapToPortfolioWeights";
 import { useProfilerPrint } from "@/lib/profiler/useProfilerPrint";
+import { useAdvisorReport } from "@/hooks/useAdvisorReport";
 
 const ProfilerPrintDocument = dynamic(
   () =>
@@ -49,31 +48,12 @@ export function ProfilerSummaryPanel({
   onReset,
 }: ProfilerSummaryPanelProps) {
   const printForClient = useProfilerPrint();
-  const [reportDate, setReportDate] = useState<string | undefined>(undefined);
-  const scores = useMemo(() => computeScores(answers), [answers]);
+  const { scores, report, allocationBars } = useAdvisorReport(answers, clientName);
   const optimizerWeights = useMemo(
     () => (scores.totalAns >= 10 ? mapToPortfolioWeights(answers) : null),
     [answers, scores.totalAns]
   );
   const showOptimizerButton = scores.totalAns >= 10 && optimizerWeights !== null;
-
-  useEffect(() => {
-    setReportDate(formatProfilerDate());
-  }, []);
-
-  const report = useMemo(
-    () =>
-      reportDate
-        ? buildAdvisorReport(answers, clientName.trim() || "Client", reportDate)
-        : null,
-    [answers, clientName, reportDate]
-  );
-
-  const allocationBars = [
-    { label: "Equities", sub: "Growth", pct: scores.g * 100, color: OBJECTIVE_COLORS.growth },
-    { label: "Fixed Income", sub: "Income", pct: scores.i * 100, color: OBJECTIVE_COLORS.income },
-    { label: "Cash / Money Market", sub: "Safety", pct: scores.s * 100, color: OBJECTIVE_COLORS.safety },
-  ];
 
   return (
     <>

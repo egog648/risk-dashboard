@@ -2,27 +2,19 @@
 
 import { useEquities, useCredit, useHardAssets, useCash } from "@/hooks/useAssetClass";
 import { AssetClassCard } from "@/components/dashboard/AssetClassCard";
-import { CorrelationHeatmap } from "@/components/charts/CorrelationHeatmap";
 
 const ASSET_CLASS_GROUPS = [
   { label: "Equities", hook: useEquities },
   { label: "Credit", hook: useCredit },
-  { label: "Hard Assets", hook: useHardAssets },
+  { label: "Hard Assets / Alts", hook: useHardAssets },
   { label: "Cash", hook: useCash },
-];
+] as const;
 
 export default function OverviewPage() {
-  const equities = useEquities();
-  const credit = useCredit();
-  const hardAssets = useHardAssets();
-  const cash = useCash();
-
-  const sections = [
-    { label: "Equities", result: equities },
-    { label: "Credit", result: credit },
-    { label: "Hard Assets / Alts", result: hardAssets },
-    { label: "Cash", result: cash },
-  ];
+  const sections = ASSET_CLASS_GROUPS.map(({ label, hook }) => ({
+    label,
+    result: hook(),
+  }));
 
   return (
     <div className="space-y-8">

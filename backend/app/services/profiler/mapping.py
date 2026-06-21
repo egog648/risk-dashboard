@@ -1,5 +1,4 @@
 """Map stored profile scores to portfolio outline data."""
-import json
 
 from app.models.db_models import ClientProfile
 

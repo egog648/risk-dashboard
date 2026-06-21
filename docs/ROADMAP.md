@@ -107,6 +107,21 @@ See `docs/BUILD.md` Part 2 (Modules 10–17).
 - Keep `docs/BUILD.md` and active module doc synchronized with code.
 - Append session notes to `docs/sessions/HANDOFF_NOTE.md`.
 
+## Refactor Track (Phase 2 → 3 bridge)
+
+Goal: reduce dead code, unify duplicated logic, and improve fetch efficiency without breaking API contracts.
+
+Control doc: [`docs/REFACTOR_CHECKLIST.md`](REFACTOR_CHECKLIST.md)
+
+| Wave | Focus | Exit criteria |
+|------|-------|---------------|
+| 0 | Docs + baseline | Checklist exists; full test suite green and recorded |
+| 1 | Cleanup + bug fix | Dead code removed; FrontierControls wired; profiler cache fix |
+| 2 | Structural dedup | Shared asset-class pipeline + expected returns; profiler hook dedup |
+| 3 | Performance | Request-scoped cache; incremental upserts; N+1 fix |
+
+**Gate rule:** Each wave requires full test suite green before the next wave starts.
+
 ## Related Docs
 - `docs/ARCHITECTURE.md`
 - `docs/HANDOFF_CHECKLIST.md`

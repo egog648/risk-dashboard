@@ -109,3 +109,58 @@ Implement Module 15 market callouts — wire live data-status, yield curve, and 
 
 ## Next single priority
 Phase 4 advisory modules are feature-complete (Module 17 deferred). Begin Phase 3 production-readiness planning (prod Docker profiles, observability, methodology hardening) or pick up Module 17 when analytics scope is defined.
+
+---
+
+# Handoff Note — Refactor Track Phase 0 (Baseline)
+
+## Completed in this session
+- Created `docs/REFACTOR_CHECKLIST.md` as refactor control doc.
+- Updated `docs/KNOWN_GAPS.md` with gaps 9–12 (profiler cache, duplicate expected returns, redundant fetches, returns inconsistency).
+- Updated `docs/ROADMAP.md` with Refactor Track (Waves 0–3).
+
+## Baseline record (pre-refactor code)
+- **Date/Time:** 2026-06-21 (local)
+- **Commit SHA:** `2aa4a68c4b007d9c5ceaaa686cc2084f0d0f6ede`
+- **Backend:** `pytest tests/` → 34 passed
+- **Frontend vitest:** 8 files, 32 passed
+- **Frontend build:** success (13 routes)
+- **Frontend e2e:** requires backend at `:8000`; not run green in this session (backend not started)
+
+## Next single priority
+Execute Wave 1: dead code cleanup, profiler cache fix, wire FrontierControls.
+
+---
+
+# Handoff Note — Refactor Wave 1
+
+## Completed
+- Removed dead hooks (`useMarketData`, `useCycleData`) and unused API/formatters exports.
+- Fixed profiler save cache invalidation via `useSaveClientProfileMutation`.
+- Wired `FrontierControls` on portfolio page; extended portfolio test.
+- Backend: removed unused `correlation_matrix`/`ewma_covariance`, dead REIT fetch, duplicate locals.
+- Updated module docs 05, 07, 08; closed KNOWN_GAPS #9.
+
+## Validation
+- Backend pytest: 34 passed
+- Frontend vitest: 32 passed; build success
+
+## Next single priority
+Execute Wave 2: AssetClassBase pipeline, expected_returns module, profiler dedup.
+
+---
+
+# Handoff Note — Refactor Waves 2–3 Complete
+
+## Completed
+- **Wave 2:** Extended `AssetClassBase` with shared risk pipeline; refactored all 9 asset classes; added `expected_returns.py`; `useAdvisorReport` hook; unified types and `dataStatus` API; updated docs 03, 04, ARCHITECTURE.
+- **Wave 3:** Request-scoped cache middleware; incremental TimeSeries upserts; parallel refresh (concurrency 4); removed unused FRED/ticker refresh targets; client list N+1 fix; portfolio returns consistency via shared `mu`/`cov`; closed KNOWN_GAPS #10–12.
+
+## Validation record
+- **Date/Time:** 2026-06-21 (local)
+- **Backend pytest:** 35 passed
+- **Frontend vitest:** 32 passed
+- **Frontend build:** success (13 routes)
+
+## Next single priority
+Resume Phase 3 production-readiness planning (prod Docker profiles, observability) on the refactored baseline.

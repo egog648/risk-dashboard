@@ -68,6 +68,34 @@ This file tracks confirmed limitations and unresolved risks that matter for road
 - Planned fix: Dynamic `ASSET_TICKERS` from registry (v2).
 - Roadmap phase: Phase 4 / deferred
 
+### 9) Profiler save bypasses React Query cache invalidation
+- Severity: Medium
+- Impact: Saving from `/profiler` does not invalidate client/profile queries; `/clients/{id}` may show stale data until manual refresh.
+- Status: Resolved (Refactor Wave 1)
+- Resolution: `ProfilerContext` uses `useSaveClientProfileMutation` with the same invalidation keys as `useSaveClientProfile`.
+- Roadmap phase: Refactor Track
+
+### 10) Duplicate expected-return computation paths
+- Severity: Medium
+- Impact: Asset classes and portfolio optimizer compute expected returns independently; drift risk when assumptions change.
+- Status: Resolved (Refactor Wave 2)
+- Resolution: Shared `expected_returns.py` module consumed by portfolio optimizer; asset classes use same CPI/risk-free helpers via `AssetClassBase`.
+- Roadmap phase: Refactor Track
+
+### 11) Redundant series fetches on aggregate endpoints
+- Severity: Low
+- Impact: `/equities/all` and similar endpoints re-fetch shared FRED series multiple times per request.
+- Status: Resolved (Refactor Wave 3)
+- Resolution: Request-scoped memoization in `data_fetchers/cache.py` wired via middleware in `main.py`.
+- Roadmap phase: Refactor Track
+
+### 12) Returns method inconsistency in portfolio evaluation
+- Severity: Low
+- Impact: Frontier uses log returns; current-portfolio point evaluation uses simple returns; Sharpe/vol may differ slightly.
+- Status: Resolved (Refactor Wave 3)
+- Resolution: Portfolio endpoint reuses `mu`/`cov` from `build_frontier`, which uses log returns via `compute_returns`.
+- Roadmap phase: Refactor Track
+
 ## Update Policy
 - Add new gaps when a bug or limitation is confirmed.
 - Update status/workaround when behavior changes.

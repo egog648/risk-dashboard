@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.db_models import DataRefreshLog, TimeSeries
+from app.services.data_fetchers.cache import get_cached, set_cached
+from app.services.data_fetchers.series_store import upsert_time_series
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +33,8 @@ FRED_SERIES: dict[str, str] = {
     # Hard Assets
     "CPIAUCSL": "CPI All Items",
     "T10YIE": "10-Year Breakeven Inflation",
-    "DCOILWTICO": "WTI Crude Oil Price",
-    "CSUSHPISA": "Case-Shiller Home Price Index",
     # Cash
     "DTB3": "3-Month Treasury Bill Rate",
-    "SOFR": "SOFR Rate",
 }
 
 
@@ -48,15 +47,24 @@ def fetch_series(series_id: str, db: Session, lookback_years: int = 25) -> pd.Se
 
     Checks the DB cache first. If data is stale (older than 1 day), re-fetches.
     """
+    cache_key = f"fred:{series_id}"
+    cached = get_cached(cache_key)
+    if cached is not None:
+        return cached.copy()
+
     start_date = datetime.utcnow() - timedelta(days=365 * lookback_years)
     log = db.query(DataRefreshLog).filter_by(series_id=series_id, source="fred").first()
 
     if log and log.status == "ok":
         cutoff = datetime.utcnow() - timedelta(hours=23)
         if log.last_refreshed > cutoff:
-            return _load_from_db(series_id, db, start_date)
+            series = _load_from_db(series_id, db, start_date)
+            set_cached(cache_key, series)
+            return series
 
-    return _fetch_and_cache(series_id, db, start_date)
+    series = _fetch_and_cache(series_id, db, start_date)
+    set_cached(cache_key, series)
+    return series
 
 
 def _fetch_and_cache(series_id: str, db: Session, start_date: datetime) -> pd.Series:
@@ -65,15 +73,7 @@ def _fetch_and_cache(series_id: str, db: Session, start_date: datetime) -> pd.Se
         raw: pd.Series = fred.get_series(series_id, observation_start=start_date)
         raw = raw.dropna()
 
-        # Delete old records for this series
-        db.query(TimeSeries).filter_by(series_id=series_id, source="fred").delete()
-
-        # Insert new records
-        records = [
-            TimeSeries(series_id=series_id, source="fred", date=date, value=float(val))
-            for date, val in raw.items()
-        ]
-        db.bulk_save_objects(records)
+        upsert_time_series(db, series_id, "fred", raw)
 
         # Update refresh log
         log = db.query(DataRefreshLog).filter_by(series_id=series_id, source="fred").first()

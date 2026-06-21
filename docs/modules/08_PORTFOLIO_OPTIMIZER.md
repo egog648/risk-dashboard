@@ -74,6 +74,14 @@ weight_bounds=(0.0, 0.60)   # 0–60% per asset
 The weights from the request are used as the "current" portfolio point.
 They are normalized to sum to 1 if they don't already.
 
+## UI Layout
+
+The portfolio page shows:
+1. **AllocationSliders** (left column) — weight inputs and Run Optimizer button
+2. **EfficientFrontierChart** (right column) — frontier curve, Monte Carlo scatter, reference dots
+3. **FrontierControls** (below chart) — numeric summary cards for Max Sharpe, Min Vol, Current
+4. **CorrelationHeatmap** (full width below) — pairwise correlations from the frontier response
+
 ## Extending the Optimizer
 
 To add a new asset to the optimizer:

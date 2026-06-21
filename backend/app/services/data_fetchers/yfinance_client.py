@@ -13,6 +13,8 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.db_models import DataRefreshLog, TimeSeries
+from app.services.data_fetchers.cache import get_cached, set_cached
+from app.services.data_fetchers.series_store import upsert_time_series
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,6 @@ YFINANCE_TICKERS: dict[str, str] = {
     "IWM": "US Small Cap Equities (Russell 2000)",
     # Credit
     "TLT": "Long-Term Government Bonds (20Y+ Treasuries)",
-    "IEF": "Intermediate Government Bonds (7-10Y Treasuries)",
     "LQD": "Investment Grade Corporate Bonds",
     "HYG": "High Yield Corporate Bonds",
     # Hard Assets
@@ -51,32 +52,31 @@ def validate_ticker_symbol(ticker: str, db: Session) -> bool:
 
 def fetch_ticker(ticker: str, db: Session, lookback_years: int = 25) -> pd.Series:
     """Return adjusted close price series for a ticker via Tiingo."""
+    cache_key = f"ticker:{ticker}"
+    cached = get_cached(cache_key)
+    if cached is not None:
+        return cached.copy()
+
     start_date = datetime.utcnow() - timedelta(days=365 * lookback_years)
     log = db.query(DataRefreshLog).filter_by(series_id=ticker, source="yfinance").first()
 
     if log and log.status == "ok":
         cutoff = datetime.utcnow() - timedelta(hours=23)
         if log.last_refreshed > cutoff:
-            return _load_from_db(ticker, db, start_date)
+            series = _load_from_db(ticker, db, start_date)
+            set_cached(cache_key, series)
+            return series
 
-    return _fetch_and_cache(ticker, db, start_date)
+    series = _fetch_and_cache(ticker, db, start_date)
+    set_cached(cache_key, series)
+    return series
 
 
 def _fetch_and_cache(ticker: str, db: Session, start_date: datetime) -> pd.Series:
     try:
         prices = _fetch_from_tiingo(ticker, start_date)
 
-        db.query(TimeSeries).filter_by(series_id=ticker, source="yfinance").delete()
-        records = [
-            TimeSeries(
-                series_id=ticker,
-                source="yfinance",
-                date=date.to_pydatetime(),
-                value=float(val),
-            )
-            for date, val in prices.items()
-        ]
-        db.bulk_save_objects(records)
+        upsert_time_series(db, ticker, "yfinance", prices)
 
         log = db.query(DataRefreshLog).filter_by(series_id=ticker, source="yfinance").first()
         if not log:

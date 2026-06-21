@@ -10,8 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useClients, useCreateClient, useProfiles } from "@/hooks/useClients";
-import { saveClientProfile } from "@/lib/api/clients";
+import { useClients, useCreateClient, useProfiles, useSaveClientProfileMutation } from "@/hooks/useClients";
 import { buildProfilePayload } from "@/lib/profiler/buildProfilePayload";
 import { lettersToAnswers, type ProfilerAnswers } from "@/lib/profiler/questions";
 import { computeScores } from "@/lib/profiler/scoring";
@@ -71,6 +70,7 @@ export function ProfilerProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { data: clients, isLoading: clientsLoading } = useClients();
   const createClient = useCreateClient();
+  const saveProfile = useSaveClientProfileMutation();
 
   const [clientName, setClientName] = useState("");
   const [selectedClientId, setSelectedClientId] = useState<number | "">("");
@@ -158,7 +158,7 @@ export function ProfilerProvider({ children }: { children: ReactNode }) {
         setSelectedClientId(created.id);
       }
 
-      await saveClientProfile(clientId, payload);
+      await saveProfile.mutateAsync({ clientId, payload });
       const name =
         clientName.trim() || clients?.find((c) => c.id === clientId)?.name || "client";
       setSaveStatus(`Profile saved for ${name}.`);
@@ -170,7 +170,7 @@ export function ProfilerProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsSaving(false);
     }
-  }, [answers, selectedClientId, clientName, createClient, clients, router]);
+  }, [answers, selectedClientId, clientName, createClient, clients, router, saveProfile]);
 
   const handleImport = useCallback((name: string, imported: ProfilerAnswers) => {
     setClientName(name);

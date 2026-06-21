@@ -2,20 +2,12 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAllEquities } from "@/lib/api/equities";
 import { fetchAllCredit, fetchYieldCurve } from "@/lib/api/credit";
+import { DATA_STATUS_STALE_TIME, fetchDataStatus } from "@/lib/api/dataStatus";
 import {
   buildMarketCallouts,
   type MarketCallout,
 } from "@/lib/reports/buildMarketCallouts";
-import type { SleeveAllocation } from "@/lib/profiler/report";
-import { apiClient } from "@/lib/api/client";
-import type { DataStatusResponse } from "@/types/assets";
-
-const STALE_TIME = 5 * 60 * 1000;
-
-async function fetchDataStatus(): Promise<DataStatusResponse> {
-  const { data } = await apiClient.get<DataStatusResponse>("/data-status");
-  return data;
-}
+import type { SleeveAllocation } from "@/types/clients";
 
 export function useMarketCalloutsData(
   sleeve: SleeveAllocation | null,
@@ -31,25 +23,25 @@ export function useMarketCalloutsData(
   const equities = useQuery({
     queryKey: ["equities"],
     queryFn: fetchAllEquities,
-    staleTime: STALE_TIME,
+    staleTime: DATA_STATUS_STALE_TIME,
     enabled: active,
   });
   const credit = useQuery({
     queryKey: ["credit"],
     queryFn: fetchAllCredit,
-    staleTime: STALE_TIME,
+    staleTime: DATA_STATUS_STALE_TIME,
     enabled: active,
   });
   const yieldCurve = useQuery({
     queryKey: ["yield-curve"],
     queryFn: fetchYieldCurve,
-    staleTime: STALE_TIME,
+    staleTime: DATA_STATUS_STALE_TIME,
     enabled: active,
   });
   const dataStatus = useQuery({
     queryKey: ["data-status"],
     queryFn: fetchDataStatus,
-    staleTime: STALE_TIME,
+    staleTime: DATA_STATUS_STALE_TIME,
     enabled: active,
   });
 

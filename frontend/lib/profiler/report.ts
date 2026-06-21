@@ -1,17 +1,8 @@
 import type { ProfilerAnswers } from "./questions";
 import { computeScores, getProfileLabel, getRiskLabel } from "./scoring";
+import type { SleeveAllocation, VehicleSuggestion } from "@/types/clients";
 
-export interface VehicleSuggestion {
-  name: string;
-  pct: number;
-}
-
-export interface SleeveAllocation {
-  stocks: number;
-  bonds: number;
-  alts: number;
-  cash: number;
-}
+export type { SleeveAllocation, VehicleSuggestion };
 
 export interface AdvisorReport {
   clientName: string;

@@ -26,14 +26,19 @@ All FRED series IDs used in this project. Browse at https://fred.stlouisfed.org/
 | `GOLDAMGBD228NLBM` | Gold Fixing Price (London, USD/troy oz) | Daily |
 | `CPIAUCSL` | Consumer Price Index — All Urban Consumers | Monthly |
 | `T10YIE` | 10-Year Breakeven Inflation Rate | Daily |
-| `DCOILWTICO` | WTI Crude Oil Price (USD/barrel) | Daily |
-| `CSUSHPISA` | S&P/Case-Shiller US National Home Price Index | Monthly |
 
 ## Cash
 | Series ID | Description | Frequency |
 |---|---|---|
 | `DTB3` | 3-Month Treasury Bill Secondary Market Rate | Daily |
-| `SOFR` | Secured Overnight Financing Rate | Daily |
+
+## Reserved (not currently refreshed)
+| Series ID | Description | Notes |
+|---|---|---|
+| `DCOILWTICO` | WTI Crude Oil Price | Available for future commodities work |
+| `CSUSHPISA` | Case-Shiller Home Price Index | Available for future REIT/housing work |
+| `SOFR` | Secured Overnight Financing Rate | Available for future cash work |
+| `MKTGDPNAMER` | Buffett Indicator | Documented for methodology reference |
 
 ## Market Proxy Tickers (Tiingo-backed fetcher)
 | Ticker | Asset Class | Description |
@@ -42,10 +47,14 @@ All FRED series IDs used in this project. Browse at https://fred.stlouisfed.org/
 | `MDY` | Equities — Mid Cap | S&P 400 ETF |
 | `IWM` | Equities — Small Cap | Russell 2000 ETF |
 | `TLT` | Credit — Government | 20+ Year Treasury ETF |
-| `IEF` | Credit — Government | 7-10 Year Treasury ETF |
 | `LQD` | Credit — IG Corporate | Investment Grade Corp Bond ETF |
 | `HYG` | Credit — HY Corporate | High Yield Corp Bond ETF |
 | `GLD` | Hard Assets — Gold | Gold ETF |
 | `VNQ` | Hard Assets — REITs | US REIT ETF |
 | `DBC` | Hard Assets — Commodities | Invesco DB Commodity Index Tracking Fund |
 | `SHY` | Cash | 1-3 Year Treasury ETF (cash proxy) |
+
+## Reserved tickers (not currently refreshed)
+| Ticker | Description |
+|---|---|
+| `IEF` | 7-10 Year Treasury ETF — available for future use |

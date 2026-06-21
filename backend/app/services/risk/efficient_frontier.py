@@ -6,10 +6,11 @@ Covariance is EWMA-weighted.
 """
 import numpy as np
 import pandas as pd
-from pypfopt import EfficientFrontier, expected_returns, risk_models
+from pypfopt import EfficientFrontier
 from pypfopt.exceptions import OptimizationError
 
 from app.models.schemas import FrontierPoint
+from app.services.risk.metrics import compute_returns
 
 
 def build_frontier(
@@ -29,7 +30,7 @@ def build_frontier(
         weight_bounds: (min, max) weight per asset
 
     Returns:
-        dict with keys: frontier, max_sharpe, min_vol, monte_carlo, correlation_matrix
+        dict with keys: frontier, max_sharpe, min_vol, monte_carlo, correlation_matrix, mu, cov
     """
     # Align series to common dates
     df = pd.DataFrame(price_dict).dropna()
@@ -38,8 +39,8 @@ def build_frontier(
 
     assets = list(df.columns)
 
-    # EWMA covariance (annualized)
-    returns_df = np.log(df / df.shift(1)).dropna()
+    # EWMA covariance (annualized) using log returns
+    returns_df = pd.DataFrame({col: compute_returns(df[col]) for col in df.columns}).dropna()
     cov_matrix = returns_df.ewm(span=252).cov().iloc[-len(assets):] * 252
 
     mu = pd.Series({k: expected_ret.get(k, 0.06) for k in assets})
@@ -92,6 +93,8 @@ def build_frontier(
         "min_vol": min_vol,
         "monte_carlo": mc_points,
         "correlation_matrix": corr_dict,
+        "mu": mu,
+        "cov": cov_matrix,
     }
 
 

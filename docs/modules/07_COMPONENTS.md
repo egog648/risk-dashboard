@@ -87,7 +87,7 @@ Runs optimizer on button click.
 **Props:** `weights`, `onChange`, `onRun`, `isLoading`
 
 ### `FrontierControls.tsx`
-3-column summary cards: Max Sharpe / Min Vol / Current portfolio.
-Shows return, volatility, and Sharpe for each.
+3-column summary cards below the frontier chart: Max Sharpe / Min Vol / Current portfolio.
+Shows return, volatility, and Sharpe for each. Wired on `/portfolio` beneath `EfficientFrontierChart`.
 
 **Props:** `maxSharpe`, `minVol`, `current` (all `FrontierPoint | null`)

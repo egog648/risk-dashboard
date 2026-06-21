@@ -25,5 +25,9 @@ describe("PortfolioPage", () => {
       },
       { timeout: 15000 }
     );
+
+    expect(screen.getAllByText("Max Sharpe").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Min Volatility")).toBeInTheDocument();
+    expect(screen.getAllByText("Current").length).toBeGreaterThanOrEqual(1);
   }, 20000);
 });

@@ -24,8 +24,6 @@ All functions accept a pandas Series of prices and return floats.
 | `max_drawdown(prices)` | Peak-to-trough drawdown fraction |
 | `value_at_risk(prices, confidence=0.95)` | Historical VaR |
 | `conditional_var(prices, confidence=0.95)` | CVaR / Expected Shortfall |
-| `correlation_matrix(price_dict)` | Pairwise correlation DataFrame |
-| `ewma_covariance(price_dict, span=252)` | EWMA covariance matrix (annualized) |
 | `compute_risk_score(vol, max_dd, var_99, val_z)` | Composite 0–100 risk score |
 
 ### Composite Risk Score Breakdown

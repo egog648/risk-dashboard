@@ -78,20 +78,6 @@ def conditional_var(prices: pd.Series, confidence: float = 0.95, window: int = 2
     return float(tail.mean())
 
 
-def correlation_matrix(price_dict: dict[str, pd.Series]) -> pd.DataFrame:
-    """Compute pairwise correlation matrix from a dict of price series."""
-    returns = {k: compute_returns(v) for k, v in price_dict.items()}
-    df = pd.DataFrame(returns).dropna()
-    return df.corr()
-
-
-def ewma_covariance(price_dict: dict[str, pd.Series], span: int = 252) -> pd.DataFrame:
-    """Exponentially weighted covariance matrix (annualized)."""
-    returns = {k: compute_returns(v) for k, v in price_dict.items()}
-    df = pd.DataFrame(returns).dropna()
-    return df.ewm(span=span).cov().iloc[-len(df.columns):] * 252
-
-
 def compute_risk_score(
     vol: float,
     max_dd: float,

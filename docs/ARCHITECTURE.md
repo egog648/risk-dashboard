@@ -55,8 +55,10 @@ flowchart LR
   - `backend/app/api/v1/endpoints/tickers.py`
 - Shared schemas: `backend/app/models/schemas.py`
 - Data fetch/cache layer: `backend/app/services/data_fetchers/`
+  - Request-scoped memoization via `RequestCacheMiddleware` in `main.py`
+  - Shared expected returns: `backend/app/services/risk/expected_returns.py`
 - Risk engine: `backend/app/services/risk/`
-- Asset logic: `backend/app/services/asset_classes/`
+- Asset logic: `backend/app/services/asset_classes/` (shared pipeline in `base.py`)
 
 ## Frontend Structure
 - App routes: `frontend/app/`

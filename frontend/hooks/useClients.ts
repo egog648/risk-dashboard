@@ -68,6 +68,25 @@ export function useSaveClientProfile(clientId: number) {
   });
 }
 
+/** Save profile when clientId is resolved at mutation time (e.g. profiler flow). */
+export function useSaveClientProfileMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      clientId,
+      payload,
+    }: {
+      clientId: number;
+      payload: ClientProfileCreate;
+    }) => saveClientProfile(clientId, payload),
+    onSuccess: (_data, { clientId }) => {
+      queryClient.invalidateQueries({ queryKey: ["clients", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["clients", clientId, "profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+  });
+}
+
 export function usePortfolios(clientId: number) {
   return useQuery({
     queryKey: ["clients", clientId, "portfolios"],

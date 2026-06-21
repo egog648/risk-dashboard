@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 
 from fastapi import HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.db_models import Client, ClientProfile, Portfolio, PortfolioOutline
@@ -106,22 +107,40 @@ def get_effective_profile(db: Session, portfolio: Portfolio) -> ClientProfile | 
 
 def list_clients(db: Session) -> list[ClientResponse]:
     clients = db.query(Client).order_by(Client.name).all()
-    result = []
-    for c in clients:
-        current = _get_current_client_profile(db, c.id)
-        count = db.query(Portfolio).filter(Portfolio.client_id == c.id).count()
-        result.append(
-            ClientResponse(
-                id=c.id,
-                name=c.name,
-                notes=c.notes,
-                created_at=c.created_at,
-                updated_at=c.updated_at,
-                current_profile_id=current.id if current else None,
-                portfolio_count=count,
-            )
+    if not clients:
+        return []
+
+    client_ids = [c.id for c in clients]
+    profiles = (
+        db.query(ClientProfile)
+        .filter(
+            ClientProfile.client_id.in_(client_ids),
+            ClientProfile.is_current.is_(True),
+            ClientProfile.is_portfolio_override.is_(False),
         )
-    return result
+        .all()
+    )
+    profile_map = {p.client_id: p for p in profiles}
+
+    portfolio_counts = dict(
+        db.query(Portfolio.client_id, func.count(Portfolio.id))
+        .filter(Portfolio.client_id.in_(client_ids))
+        .group_by(Portfolio.client_id)
+        .all()
+    )
+
+    return [
+        ClientResponse(
+            id=c.id,
+            name=c.name,
+            notes=c.notes,
+            created_at=c.created_at,
+            updated_at=c.updated_at,
+            current_profile_id=profile_map[c.id].id if c.id in profile_map else None,
+            portfolio_count=portfolio_counts.get(c.id, 0),
+        )
+        for c in clients
+    ]
 
 
 def get_client(db: Session, client_id: int) -> ClientResponse:
