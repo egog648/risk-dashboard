@@ -13,7 +13,7 @@ jobs:
     env:
       FRED_API_KEY: ci-test-key
       TIINGO_API_KEY: ci-test-key
-      DATABASE_URL: "sqlite:///:memory:"
+      DATABASE_URL: "sqlite:///./data/ci_test.db"
     steps:
       - uses: actions/checkout@v4
 
@@ -25,6 +25,12 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
+
+      - name: Prepare test database
+        working-directory: backend
+        run: |
+          mkdir -p data
+          python -c "from app.core.database import init_db; init_db()"
 
       - name: Run pytest
         working-directory: backend
