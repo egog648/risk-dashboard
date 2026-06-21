@@ -4,7 +4,8 @@
 Get both backend (FastAPI on :8000) and frontend (Next.js on :3000) running with one command.
 
 ## Files Involved
-- `docker-compose.yml`
+- `docker-compose.yml` (development)
+- `docker-compose.prod.yml` (production)
 - `backend/Dockerfile`
 - `frontend/Dockerfile`
 - `backend/.env.example` → `backend/.env`
@@ -59,6 +60,27 @@ curl http://localhost:3000
 ```
 
 Full API docs: http://localhost:8000/docs
+
+## Production Compose
+
+Use this path to run release-oriented containers (no hot reload, no source bind mounts):
+
+```bash
+docker compose -f docker-compose.prod.yml up --build
+```
+
+On first run this will:
+- Build backend with `target: production` (`uvicorn` with 2 workers, no `--reload`)
+- Build frontend with `target: production` (`npm run build` then `npm run start`)
+- Mount only `./backend/data` for SQLite persistence
+
+Production frontend env (set in `docker-compose.prod.yml`):
+- `NEXT_PUBLIC_API_URL=http://localhost:8000` — browser/client API calls from the host
+- `INTERNAL_API_URL=http://backend:8000` — server-side prefetch inside the Docker network
+
+After startup, run the bootstrap sequence in `docs/RUNBOOKS.md` (health → refresh → poll → smoke).
+
+**Note:** Stop the dev stack before starting prod if both use ports 8000/3000.
 
 ## Notes
 - The `backend/data/` directory is mounted as a volume so the SQLite database persists across container restarts.

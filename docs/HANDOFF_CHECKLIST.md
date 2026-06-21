@@ -26,8 +26,10 @@ Use this checklist when handing the project to a new chat or contributor.
     - `NEXT_PUBLIC_API_URL=http://localhost:8000`
 
 ## 3) Launch
-- Start stack:
+- **Development** (hot reload, source bind mounts):
   - `docker-compose up --build`
+- **Production** (release targets, image-baked code):
+  - `docker compose -f docker-compose.prod.yml up --build`
 - Open:
   - Frontend: `http://localhost:3000`
   - Backend docs: `http://localhost:8000/docs`

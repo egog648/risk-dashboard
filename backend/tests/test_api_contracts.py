@@ -48,6 +48,7 @@ async def test_data_status_contract(client):
     parsed = DataStatusResponse.model_validate(payload)
     assert parsed.overall_status in {"ok", "stale", "error"}
     assert isinstance(parsed.series, list)
+    assert "last_refresh_run" in payload
 
 
 @pytest.mark.asyncio

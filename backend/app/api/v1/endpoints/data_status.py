@@ -1,9 +1,10 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.observability import get_refresh_run_summary
 from app.models.db_models import DataRefreshLog
 from app.models.schemas import DataStatusResponse, SeriesStatus
 from app.services.data_fetchers.data_manager import refresh_all_data
@@ -39,7 +40,8 @@ def get_data_status(db: Session = Depends(get_db)):
     return DataStatusResponse(
         series=series_statuses,
         overall_status=overall,
-        as_of=datetime.utcnow(),
+        as_of=datetime.now(UTC),
+        last_refresh_run=get_refresh_run_summary(),
     )
 
 

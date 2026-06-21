@@ -22,10 +22,22 @@ export interface SeriesStatus {
   status: string;
 }
 
+export interface RefreshRunSummary {
+  state: "idle" | "running" | "completed" | "failed";
+  started_at: string | null;
+  completed_at: string | null;
+  duration_ms: number | null;
+  total_series: number;
+  ok_count: number;
+  error_count: number;
+  failed_series: string[];
+}
+
 export interface DataStatusResponse {
   series: SeriesStatus[];
   overall_status: "ok" | "stale" | "error";
   as_of: string;
+  last_refresh_run?: RefreshRunSummary | null;
 }
 
 export interface TimeSeriesPoint {

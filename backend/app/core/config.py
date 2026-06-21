@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     # Data refresh schedule
     DATA_REFRESH_CRON: str = "0 6 * * *"
 
+    # Observability thresholds
+    SLOW_REQUEST_THRESHOLD_MS: int = 2000
+    REFRESH_ERROR_WARN_RATIO: float = 0.25
+
     # CORS — allow frontend dev server
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 

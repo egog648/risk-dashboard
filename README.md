@@ -40,6 +40,14 @@ A macro risk dashboard that calculates forward-looking risk and expected returns
 
 3. Open http://localhost:3000
 
+**Production compose** (release targets, no hot reload):
+
+```bash
+docker compose -f docker-compose.prod.yml up --build
+```
+
+See `docs/modules/01_DOCKER_SETUP.md` for production env details.
+
 ## Handoff Docs
 
 Start at **`docs/README.md`**, then as needed:

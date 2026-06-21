@@ -52,4 +52,5 @@ $r2.RawContentLength  # full history
 
 ## Instrumentation added
 
-- `TimingMiddleware` in `backend/app/main.py` — logs `duration_ms` and sets `X-Response-Time` header on all requests
+- `TimingMiddleware` in `backend/app/main.py` — logs `duration_ms` and sets `X-Response-Time` header on all requests; WARNING + `X-Slow-Request: 1` when `duration_ms >= SLOW_REQUEST_THRESHOLD_MS` (default 2000)
+- Refresh-run metrics in `backend/app/core/observability.py` — aggregated ok/error counts exposed on `GET /api/v1/data-status` as `last_refresh_run`

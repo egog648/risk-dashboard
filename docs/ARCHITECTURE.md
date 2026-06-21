@@ -67,7 +67,7 @@ flowchart LR
   - Request-scoped memoization via `cache.py` + `RequestCacheMiddleware` in `main.py`
   - Response cache (10-min TTL) via `response_cache.py` on aggregate `/all` endpoints
   - Incremental upserts in `series_store.py`; parallel refresh in `data_manager.py`
-- Observability: `TimingMiddleware` in `main.py` logs duration and sets `X-Response-Time` header
+- Observability: `TimingMiddleware` logs request duration, sets `X-Response-Time` / `X-Slow-Request` headers; refresh-run metrics in `core/observability.py` exposed on `GET /data-status` as `last_refresh_run`
 - Shared expected returns: `backend/app/services/risk/expected_returns.py`
 - Client workspace: `backend/app/services/clients/workspace.py`
 - Risk engine: `backend/app/services/risk/`
@@ -125,7 +125,7 @@ Key insight: **objective orientation** (G/I/S) and **risk tolerance** (aggressio
 ## Operational Assumptions (Current)
 - Keys required for meaningful data: `FRED_API_KEY`, `TIINGO_API_KEY`.
 - First-run data refresh is required before most metrics are meaningful.
-- Dockerfiles include `production` stages but `docker-compose.yml` defaults to `development` targets (see `KNOWN_GAPS.md` #3).
+- Dockerfiles include `production` stages; use `docker-compose.prod.yml` for release-oriented local runs (see `docs/modules/01_DOCKER_SETUP.md`).
 - SQLite is sufficient for local/prototype usage; multi-instance production use needs stronger persistence strategy.
 
 ## Known Design Risks

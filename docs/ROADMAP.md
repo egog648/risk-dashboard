@@ -6,7 +6,7 @@ This roadmap moves the project from prototype to stable and handoff-friendly dev
 
 **Phase 3 — Production Readiness** (active)
 
-**Next single priority:** Wire production Docker profile into compose (closes `KNOWN_GAPS.md` #3).
+**Next single priority:** Replace hardcoded expected-return constants with sourced/versioned assumptions (`KNOWN_GAPS.md` #5).
 
 Phases 1, 2, and 4 are closed. Refactor Track and post-refactor enhancements are complete. CI enforces backend pytest, frontend Vitest, and `next build` on every push/PR to `main`.
 
@@ -60,9 +60,9 @@ Goal: make runtime and methodology resilient enough for more serious deployment/
 **Status: Active**
 
 ### Priorities
-1. **Production Docker profile** — wire `production` Dockerfile stages into compose or `docker-compose.prod.yml`.
-2. **Integration tests** — clients/profiler/tickers surfaces (see `KNOWN_GAPS.md` #13).
-3. **Observability** — extend `TimingMiddleware` baseline with refresh-failure tracking and documented thresholds.
+1. ~~**Production Docker profile**~~ — **Done** (`docker-compose.prod.yml`; closes gap #3).
+2. ~~**Integration tests**~~ — **Done** (`test_clients.py` + `/clients`, `/profiler`, `/tickers` Vitest; closes gap #13).
+3. ~~**Observability**~~ — **Done** (refresh-run metrics on `/data-status`, slow-request warnings in `TimingMiddleware`).
 4. **Methodology hardening** — replace hardcoded expected-return constants with sourced/versioned assumptions.
 5. **E2e in CI** — optional follow-up once gap #14 stability is addressed.
 

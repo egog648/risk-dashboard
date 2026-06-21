@@ -3,6 +3,7 @@ import type { MarketCalloutContext } from "@/lib/reports/buildMarketCallouts";
 import type { SleeveAllocation } from "@/lib/profiler/report";
 import type { EfficientFrontierResponse } from "@/types/portfolio";
 import type { Client, ClientProfile, Portfolio, PortfolioOutline } from "@/types/clients";
+import type { CustomTicker } from "@/types/tickers";
 import { DEFAULT_WEIGHTS } from "@/types/portfolio";
 
 function makeAsset(
@@ -105,6 +106,7 @@ export const fixtures = {
     overall_status: "ok" as const,
     as_of: "2026-05-08T12:00:00Z",
     series: [],
+    last_refresh_run: null,
   },
   dataStatusStale: {
     overall_status: "stale" as const,
@@ -228,5 +230,45 @@ export const fixtures = {
     },
   ] satisfies PortfolioOutline[],
 };
+
+function cloneClients(): Client[] {
+  return fixtures.clients.map((client) => ({ ...client }));
+}
+
+function cloneProfiles(): ClientProfile[] {
+  return fixtures.clientProfiles.map((profile) => ({
+    ...profile,
+    answers: { ...profile.answers },
+  }));
+}
+
+function clonePortfolios(): Record<number, Portfolio[]> {
+  return Object.fromEntries(
+    Object.entries(fixtures.clientPortfolios).map(([clientId, portfolios]) => [
+      Number(clientId),
+      portfolios.map((portfolio) => ({ ...portfolio })),
+    ])
+  );
+}
+
+export const advisoryMockState = {
+  clients: cloneClients(),
+  profiles: cloneProfiles(),
+  portfolios: clonePortfolios(),
+  tickers: [] as CustomTicker[],
+  nextClientId: 2,
+  nextProfileId: 11,
+  nextTickerId: 1,
+};
+
+export function resetAdvisoryMockState() {
+  advisoryMockState.clients = cloneClients();
+  advisoryMockState.profiles = cloneProfiles();
+  advisoryMockState.portfolios = clonePortfolios();
+  advisoryMockState.tickers = [];
+  advisoryMockState.nextClientId = 2;
+  advisoryMockState.nextProfileId = 11;
+  advisoryMockState.nextTickerId = 1;
+}
 
 export { makeAsset, makeYieldCurve };

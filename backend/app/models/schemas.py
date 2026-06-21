@@ -133,10 +133,22 @@ class SeriesStatus(BaseModel):
     status: str
 
 
+class RefreshRunSummary(BaseModel):
+    state: Literal["idle", "running", "completed", "failed"]
+    started_at: datetime | None
+    completed_at: datetime | None
+    duration_ms: float | None
+    total_series: int
+    ok_count: int
+    error_count: int
+    failed_series: list[str]
+
+
 class DataStatusResponse(BaseModel):
     series: list[SeriesStatus]
     overall_status: Literal["ok", "stale", "error"]
     as_of: datetime
+    last_refresh_run: RefreshRunSummary | None = None
 
 
 # --- Custom ticker registry ---

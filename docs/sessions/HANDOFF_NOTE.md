@@ -213,3 +213,69 @@ Add GitHub Actions CI workflow to enforce backend pytest, frontend Vitest, and `
 
 ## Next single priority
 Wire production Docker profile into compose (`KNOWN_GAPS.md` #3).
+
+---
+
+# Handoff Note — Production Docker Compose Profile
+
+## Completed
+- Added `docker-compose.prod.yml` with `production` Dockerfile targets, data-only backend volume, and prod env vars.
+- Added `INTERNAL_API_URL` fallback in `frontend/lib/api/server.ts` for SSR inside containers.
+- Added `NEXT_PUBLIC_API_URL` build ARG/ENV to `frontend/Dockerfile` production stage.
+- Updated docs: `01_DOCKER_SETUP.md`, `RUNBOOKS.md`, `HANDOFF_CHECKLIST.md`, `README.md`, `ROADMAP.md`, `KNOWN_GAPS.md` (#3 closed), `ARCHITECTURE.md`.
+
+## Validation record (2026-06-21)
+- **Command:** `docker compose -f docker-compose.prod.yml up --build -d`
+- **Build:** backend + frontend production images built successfully
+- **Health:** `GET /health` → `{"status":"ok"}`
+- **Refresh:** `POST /api/v1/data-status/refresh` → 200
+- **Data status:** `overall_status=stale` (not error)
+- **Smoke endpoints:** equities, credit, yield-curve, hard-assets, cash → all 200
+- **Frontend:** prod container served overview at `:3001` (host `:3000` occupied by local dev server); HTTP 200, no SSR fetch errors in logs
+- **Compose config:** `docker-compose.yml` and `docker-compose.prod.yml` both validate
+- **Note:** Full dev stack startup not re-run on `:3000` due to port conflict with existing local `node` process; dev compose file unchanged
+
+## Next single priority
+Integration tests for clients/profiler/tickers surfaces (`KNOWN_GAPS.md` #13).
+
+---
+
+# Handoff Note — Advisory Integration Tests (Gap #13)
+
+## Completed
+- Added `backend/tests/test_clients.py` — client CRUD, profile save, portfolio/outline workflow, override, and error cases (7 tests).
+- Extended MSW handlers with mutable advisory mock state (`POST /clients`, `POST /clients/:id/profiles`, `GET/POST /tickers`).
+- Added frontend page tests: `clients.test.tsx`, `profiler.test.tsx`, `tickers.test.tsx`.
+- Updated `vitest.setup.ts` to reset advisory mock state between tests.
+- Closed `KNOWN_GAPS.md` #13; updated `ROADMAP.md` next priority to observability.
+
+## Validation record (2026-06-21)
+- **Backend pytest:** `pytest tests/` → **45 passed**
+- **Frontend vitest:** `npm run test` → **13 files, 47 passed**
+- **New backend tests:** 7 (`test_clients.py`)
+- **New frontend tests:** 7 (2 clients + 3 profiler + 2 tickers)
+
+## Next single priority
+Extend `TimingMiddleware` with refresh-failure tracking and documented thresholds (Phase 3 observability).
+
+---
+
+# Handoff Note — Phase 3 Observability
+
+## Completed
+- Added `backend/app/core/observability.py` — thread-safe refresh-run metrics (`begin/record/complete/fail`).
+- Extended `RefreshRunSummary` schema and `DataStatusResponse.last_refresh_run`.
+- Instrumented `refresh_all_data()` with per-series ok/error aggregation and WARNING logs.
+- Extended `TimingMiddleware` with slow-request WARNING + `X-Slow-Request` header.
+- Added config thresholds: `SLOW_REQUEST_THRESHOLD_MS` (2000), `REFRESH_ERROR_WARN_RATIO` (0.25).
+- Added `backend/tests/test_observability.py` (4 tests); updated contract test for `last_refresh_run`.
+- Synced frontend `RefreshRunSummary` type and MSW fixture.
+- Documented observability in `RUNBOOKS.md`, `ARCHITECTURE.md`, `PERFORMANCE_BASELINE.md`.
+
+## Validation record (2026-06-21)
+- **Backend pytest:** `pytest tests/` → **49 passed**
+- **Frontend vitest:** `npm run test` → **13 files, 47 passed**
+- **New backend tests:** 4 (`test_observability.py`)
+
+## Next single priority
+Methodology hardening — replace hardcoded expected-return constants with sourced/versioned assumptions (`KNOWN_GAPS.md` #5).

@@ -11,11 +11,11 @@ This file tracks confirmed limitations and unresolved risks that matter for road
 
 | # | Gap | Severity | Phase | Status |
 |---|-----|----------|-------|--------|
-| 3 | Dev-oriented Docker compose defaults | Medium | Phase 3 | Open |
+| 3 | Dev-oriented Docker compose defaults | Medium | Phase 3 | Resolved |
 | 4 | CI enforcement (core tests) | Medium | Phase 2 | Resolved |
 | 5 | Hardcoded expected-return assumptions | Medium | Phase 3 | Open |
 | 8 | Custom tickers excluded from frontier | Low | Deferred | Open |
-| 13 | Clients/profiler/tickers test coverage | Medium | Phase 2 tail | Open |
+| 13 | Clients/profiler/tickers test coverage | Medium | Phase 3 | Resolved |
 | 14 | E2E mocks optimizer response | Low | Phase 2 tail | Open |
 | 15 | `datetime.utcnow()` deprecation warnings | Low | Phase 3 | Open |
 | 16 | React Query `staleTime` not unified to 60s | Low | — | Open |
@@ -36,9 +36,8 @@ Resolved gaps (#1, #2, #7, #9–#12) are listed below for history.
 
 ### 3) Dev-oriented runtime defaults
 - Severity: Medium
-- Impact: `docker-compose.yml` targets `development` for both services (`npm run dev`, `uvicorn --reload`). Production stages exist in Dockerfiles but are not wired into default compose.
-- Current workaround: Use current setup for local/dev only.
-- Planned fix: Add production compose profile and validated release startup path.
+- Status: **Resolved** (2026-06-21)
+- Resolution: Added `docker-compose.prod.yml` with `production` Dockerfile targets, data-only backend volume, and `INTERNAL_API_URL` for SSR inside containers. Dev workflow unchanged via `docker-compose.yml`.
 - Roadmap phase: Phase 3
 
 ### 4) Limited integration and end-to-end test coverage / no CI
@@ -89,10 +88,9 @@ Resolved gaps (#1, #2, #7, #9–#12) are listed below for history.
 
 ### 13) Clients/profiler/tickers surfaces lack test coverage
 - Severity: Medium
-- Impact: Largest untested API and UI surfaces; regressions in advisory workflow may go unnoticed.
-- Evidence: No `test_clients.py`; no frontend tests for `/clients`, `/profiler`, `/tickers` routes.
-- Planned fix: Backend contract tests for clients API; frontend integration tests for key advisory flows.
-- Roadmap phase: Phase 2 tail / Phase 3
+- Status: **Resolved** (2026-06-21)
+- Resolution: Added `backend/tests/test_clients.py` (7 tests) for clients workspace API workflow. Added frontend Vitest page tests for `/clients`, `/profiler`, and `/tickers` with MSW write handlers. Tickers backend was already covered by `test_ticker_registry.py` and `test_ticker_recommendations.py`.
+- Roadmap phase: Phase 3
 
 ### 14) E2E happy path mocks optimizer response
 - Severity: Low

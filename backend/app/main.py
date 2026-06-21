@@ -32,12 +32,18 @@ class TimingMiddleware(BaseHTTPMiddleware):
         duration_ms = round((time.perf_counter() - start) * 1000, 2)
         response.headers["X-Response-Time"] = f"{duration_ms}ms"
         if request.url.path.startswith("/api/"):
-            logger.info(
-                "request_timing path=%s method=%s status=%s duration_ms=%s",
+            slow = duration_ms >= settings.SLOW_REQUEST_THRESHOLD_MS
+            if slow:
+                response.headers["X-Slow-Request"] = "1"
+            log_fn = logger.warning if slow else logger.info
+            log_fn(
+                "request_timing path=%s method=%s status=%s duration_ms=%s threshold_ms=%s slow=%s",
                 request.url.path,
                 request.method,
                 response.status_code,
                 duration_ms,
+                settings.SLOW_REQUEST_THRESHOLD_MS,
+                slow,
             )
         return response
 
