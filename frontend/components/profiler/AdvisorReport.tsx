@@ -1,36 +1,10 @@
 "use client";
 
 import type { AdvisorReport as AdvisorReportData } from "@/lib/profiler/report";
-import type { VehicleSuggestion } from "@/lib/profiler/report";
+import { VehicleSuggestions } from "./VehicleSuggestions";
 
 interface AdvisorReportProps {
   report: AdvisorReportData | null;
-}
-
-function VehicleTable({ color, vehicles }: { color: string; vehicles: VehicleSuggestion[] }) {
-  if (vehicles.length === 0) return null;
-  return (
-    <table className="w-full border-collapse text-[11px] mt-2">
-      <thead>
-        <tr>
-          <th className="text-white px-2.5 py-1.5 text-left font-semibold text-[10px] uppercase tracking-wide rounded-tl-md" style={{ background: color }}>
-            Vehicle
-          </th>
-          <th className="text-white px-2.5 py-1.5 text-right font-semibold text-[10px] uppercase tracking-wide rounded-tr-md" style={{ background: color }}>
-            % of Portfolio
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {vehicles.map((v) => (
-          <tr key={v.name} className="even:bg-[#f8fafc]">
-            <td className="px-2.5 py-1.5 border-b border-[#e8edf2] text-ff-text-secondary">{v.name}</td>
-            <td className="px-2.5 py-1.5 border-b border-[#e8edf2] font-bold text-ff-navy text-right">{v.pct}%</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
 }
 
 function BarRow({ label, value, color }: { label: string; value: number; color: string }) {
@@ -122,7 +96,16 @@ export function AdvisorReport({ report }: AdvisorReportProps) {
           <div className="text-[11px] text-ff-muted mb-1.5">
             {report.passivePct}% passive / index — {report.activePct}% active / concentrated
           </div>
-          <VehicleTable color="#2a7d5f" vehicles={report.eqVehicles} />
+          <VehicleSuggestions
+            sleevePct={sleeve.stocks}
+            growthPct={report.gPct}
+            incomePct={report.iPct}
+            safetyPct={report.sPct}
+            aggression={report.aggPct}
+            assetClass="equities"
+            color="#2a7d5f"
+            fallbackVehicles={report.eqVehicles}
+          />
         </div>
       )}
 
@@ -131,7 +114,16 @@ export function AdvisorReport({ report }: AdvisorReportProps) {
           <div className="text-xs font-bold text-ff-navy uppercase tracking-wide mb-1.5 border-b border-[#e8edf2] pb-1">
             Fixed Income Sleeve — {sleeve.bonds}% of Portfolio
           </div>
-          <VehicleTable color="#2a5d9f" vehicles={report.bondVehicles} />
+          <VehicleSuggestions
+            sleevePct={sleeve.bonds}
+            growthPct={report.gPct}
+            incomePct={report.iPct}
+            safetyPct={report.sPct}
+            aggression={report.aggPct}
+            assetClass="credit"
+            color="#2a5d9f"
+            fallbackVehicles={report.bondVehicles}
+          />
         </div>
       )}
 
@@ -140,7 +132,16 @@ export function AdvisorReport({ report }: AdvisorReportProps) {
           <div className="text-xs font-bold text-ff-navy uppercase tracking-wide mb-1.5 border-b border-[#e8edf2] pb-1">
             Alternatives Sleeve — {sleeve.alts}% of Portfolio
           </div>
-          <VehicleTable color="#7a4fa0" vehicles={report.altVehicles} />
+          <VehicleSuggestions
+            sleevePct={sleeve.alts}
+            growthPct={report.gPct}
+            incomePct={report.iPct}
+            safetyPct={report.sPct}
+            aggression={report.aggPct}
+            assetClass="hard_assets"
+            color="#7a4fa0"
+            fallbackVehicles={report.altVehicles}
+          />
         </div>
       )}
 
@@ -149,7 +150,16 @@ export function AdvisorReport({ report }: AdvisorReportProps) {
           <div className="text-xs font-bold text-ff-navy uppercase tracking-wide mb-1.5 border-b border-[#e8edf2] pb-1">
             Cash / Money Market — {sleeve.cash}% of Portfolio
           </div>
-          <VehicleTable color="#9f8a2a" vehicles={report.cashVehicles} />
+          <VehicleSuggestions
+            sleevePct={sleeve.cash}
+            growthPct={report.gPct}
+            incomePct={report.iPct}
+            safetyPct={report.sPct}
+            aggression={report.aggPct}
+            assetClass="cash"
+            color="#9f8a2a"
+            fallbackVehicles={report.cashVehicles}
+          />
         </div>
       )}
 

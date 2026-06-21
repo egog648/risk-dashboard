@@ -29,6 +29,19 @@ export interface CustomTickerCreate {
   risk_proxy_ticker?: string;
 }
 
+export interface TickerRecommendation {
+  ticker: string;
+  display_name: string;
+  asset_class: AssetClassKind;
+  primary_objective: ObjectiveKind;
+  match_score: number;
+  rationale: string;
+}
+
+export interface TickerRecommendResponse {
+  recommendations: TickerRecommendation[];
+}
+
 export const ASSET_CLASS_OPTIONS: { value: AssetClassKind; label: string }[] = [
   { value: "equities", label: "Equities" },
   { value: "credit", label: "Credit / Fixed Income" },

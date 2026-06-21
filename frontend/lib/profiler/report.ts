@@ -39,7 +39,7 @@ export interface AdvisorReport {
   };
 }
 
-function buildEquityVehicles(stocks: number, agg: number): VehicleSuggestion[] {
+export function buildEquityVehicles(stocks: number, agg: number): VehicleSuggestion[] {
   if (stocks <= 0) return [];
   if (agg <= 0.3) {
     return [
@@ -73,7 +73,7 @@ function buildEquityVehicles(stocks: number, agg: number): VehicleSuggestion[] {
   ];
 }
 
-function buildBondVehicles(bonds: number, agg: number): VehicleSuggestion[] {
+export function buildBondVehicles(bonds: number, agg: number): VehicleSuggestion[] {
   if (bonds <= 0) return [];
   if (agg <= 0.3) {
     return [
@@ -96,7 +96,7 @@ function buildBondVehicles(bonds: number, agg: number): VehicleSuggestion[] {
   ];
 }
 
-function buildAltVehicles(alts: number, agg: number): VehicleSuggestion[] {
+export function buildAltVehicles(alts: number, agg: number): VehicleSuggestion[] {
   if (alts <= 0) return [];
   const vehicles: VehicleSuggestion[] = [
     { name: "REITs (VNQ / SCHH)", pct: Math.round(alts * 0.5) },
@@ -115,7 +115,7 @@ function buildAltVehicles(alts: number, agg: number): VehicleSuggestion[] {
   return vehicles;
 }
 
-function buildCashVehicles(cash: number): VehicleSuggestion[] {
+export function buildCashVehicles(cash: number): VehicleSuggestion[] {
   if (cash <= 0) return [];
   return [
     { name: "Money Market Fund (VMFXX / SPAXX)", pct: Math.round(cash * 0.7) },

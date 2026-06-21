@@ -94,6 +94,7 @@ start http://localhost:3000
 | `PUT /api/v1/tickers/{id}` | Update ticker |
 | `DELETE /api/v1/tickers/{id}` | Deactivate ticker |
 | `POST /api/v1/tickers/validate` | Validate symbol without saving |
+| `GET /api/v1/tickers/recommend` | Rank registry tickers for profile G/I/S + aggression (Module 16) |
 
 Full Swagger UI: http://localhost:8000/docs
 
@@ -107,31 +108,34 @@ Full Swagger UI: http://localhost:8000/docs
 |------|-------|--------|------|--------|
 | 10 | 2 | Finesse branding | `10_FINESSE_BRANDING.md` | Done |
 | 11 | 2 | Custom ticker registry | `11_TICKER_REGISTRY.md` | Done |
-| 12 | 2 | Investment profiler | `12_INVESTMENT_PROFILER.md` | Planned |
-| 13 | 2 | Profile → portfolio bridge | `13_PROFILE_TO_PORTFOLIO.md` | Planned |
-| 14 | 2 | Client workspace | `14_CLIENT_WORKSPACE.md` | Planned |
-| 15 | 2 | Advisor report + market callouts | `15_ADVISOR_REPORT.md` | Planned |
-| 16 | 2 | Vehicle recommendations | `16_VEHICLE_RECOMMENDATIONS.md` | Planned |
+| 12 | 2 | Investment profiler | `12_INVESTMENT_PROFILER.md` | Done |
+| 13 | 2 | Profile → portfolio bridge | `13_PROFILE_TO_PORTFOLIO.md` | Done |
+| 14 | 2 | Client workspace | `14_CLIENT_WORKSPACE.md` | Done |
+| 15 | 2 | Advisor report + market callouts | `15_ADVISOR_REPORT.md` | Partial |
+| 16 | 2 | Vehicle recommendations | `16_VEHICLE_RECOMMENDATIONS.md` | Done |
 | 17 | 2 | Advanced analytics | `17_ADVANCED_ANALYTICS.md` | Deferred |
 
-## Quick Start (after Module 11)
+## Quick Start (after Module 16)
 
 ```bash
 # 1. Ensure Part 1 app is running (see Quick Start above)
 
-# 2. Open ticker registry
+# 2. Open ticker registry and seed vehicles
 start http://localhost:3000/tickers
 
-# 3. Add a ticker via API (example)
+# 3. Add tickers via API (examples)
 curl -X POST http://localhost:8000/api/v1/tickers \
   -H "Content-Type: application/json" \
   -d '{"ticker":"JEPI","display_name":"JPMorgan Equity Premium Income ETF","asset_class":"equities","primary_objective":"income","growth_pct":10,"income_pct":80,"safety_pct":10}'
 
-# 4. List tickers
-curl http://localhost:8000/api/v1/tickers
+# 4. Get ranked recommendations for a profile sleeve
+curl "http://localhost:8000/api/v1/tickers/recommend?growth_pct=15&income_pct=65&safety_pct=20&aggression=55&asset_class=equities"
 
-# 5. Run ticker tests
-cd backend && pytest tests/test_ticker_registry.py
+# 5. Complete profiler summary — vehicle tables use registry matches with static fallback
+start http://localhost:3000/profiler/summary
+
+# 6. Run recommendation tests
+cd backend && pytest tests/test_ticker_recommendations.py
 ```
 
 ## Handoff References

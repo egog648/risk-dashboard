@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useEfficientFrontier } from "@/hooks/useEfficientFrontier";
 import { AllocationSliders } from "@/components/portfolio/AllocationSliders";
@@ -11,7 +11,22 @@ import { loadPrefillWeights } from "@/components/profiler/SendToOptimizerButton"
 import { DEFAULT_WEIGHTS } from "@/types/portfolio";
 import type { PortfolioWeights } from "@/types/portfolio";
 
-export default function PortfolioPage() {
+function PortfolioPageSkeleton() {
+  return (
+    <div className="space-y-8 animate-pulse">
+      <div>
+        <div className="h-8 w-64 bg-ff-border rounded" />
+        <div className="h-4 w-96 bg-ff-border rounded mt-2" />
+      </div>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="h-96 bg-ff-border rounded-xl xl:col-span-1" />
+        <div className="h-96 bg-ff-border rounded-xl xl:col-span-2" />
+      </div>
+    </div>
+  );
+}
+
+function PortfolioPageContent() {
   const searchParams = useSearchParams();
   const [weights, setWeights] = useState<PortfolioWeights>(DEFAULT_WEIGHTS);
   const [prefilled, setPrefilled] = useState(false);
@@ -82,5 +97,13 @@ export default function PortfolioPage() {
         </FinesseCard>
       )}
     </div>
+  );
+}
+
+export default function PortfolioPage() {
+  return (
+    <Suspense fallback={<PortfolioPageSkeleton />}>
+      <PortfolioPageContent />
+    </Suspense>
   );
 }

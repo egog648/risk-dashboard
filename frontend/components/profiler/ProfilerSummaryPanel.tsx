@@ -8,9 +8,11 @@ import { TriangleChart } from "./TriangleChart";
 import { AggressionGauge } from "./AggressionGauge";
 import { ImplementationDetail } from "./ImplementationDetail";
 import { AdvisorReport } from "./AdvisorReport";
+import { SendToOptimizerButton } from "./SendToOptimizerButton";
 import type { ProfilerAnswers } from "@/lib/profiler/questions";
 import { computeScores } from "@/lib/profiler/scoring";
 import { buildAdvisorReport, formatProfilerDate } from "@/lib/profiler/report";
+import { mapToPortfolioWeights } from "@/lib/profiler/mapToPortfolioWeights";
 import { useProfilerPrint } from "@/lib/profiler/useProfilerPrint";
 
 const ProfilerPrintDocument = dynamic(
@@ -49,6 +51,11 @@ export function ProfilerSummaryPanel({
   const printForClient = useProfilerPrint();
   const [reportDate, setReportDate] = useState<string | undefined>(undefined);
   const scores = useMemo(() => computeScores(answers), [answers]);
+  const optimizerWeights = useMemo(
+    () => (scores.totalAns >= 10 ? mapToPortfolioWeights(answers) : null),
+    [answers, scores.totalAns]
+  );
+  const showOptimizerButton = scores.totalAns >= 10 && optimizerWeights !== null;
 
   useEffect(() => {
     setReportDate(formatProfilerDate());
@@ -96,6 +103,12 @@ export function ProfilerSummaryPanel({
       </FinesseCard>
 
       <AdvisorReport report={report} />
+
+      <div className="text-center mt-3 print:hidden">
+        {showOptimizerButton && optimizerWeights && (
+          <SendToOptimizerButton weights={optimizerWeights} />
+        )}
+      </div>
 
       <div className="text-center mt-3 print:hidden">
         {showPrintButton && (

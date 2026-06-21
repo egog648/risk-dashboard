@@ -57,9 +57,8 @@ This file tracks confirmed limitations and unresolved risks that matter for road
 ### 7) Static vehicle suggestions in HTML profiler
 - Severity: Medium
 - Impact: Profiler hardcodes ETF names (VTI, JEPI, etc.) without advisor-controlled registry or live validation.
-- Current workaround: Use standalone HTML profiler for intake; manually pick vehicles.
-- Planned fix: Module 11 ticker registry (done) + Module 16 vehicle recommendations.
-- Progress: Custom ticker CRUD and `/tickers` page implemented (Module 11).
+- Status: Resolved (Module 16)
+- Resolution: `GET /api/v1/tickers/recommend` ranks active registry tickers by G/I/S cosine similarity with objective and aggression boosts. Profiler advisor report uses `VehicleSuggestions` with static fallback when registry is empty.
 - Roadmap phase: Phase 4
 
 ### 8) Custom tickers excluded from efficient frontier

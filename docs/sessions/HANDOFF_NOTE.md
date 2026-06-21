@@ -66,3 +66,25 @@ Start Phase 3 planning with production-runtime hardening scope (non-dev containe
 
 ## Next single priority
 Implement Module 12 (Investment Profiler) — port `Finesse_Funds_Investment_Profiler (2).html` questionnaire into Next.js at `/profiler`.
+
+---
+
+# Handoff Note — Production Build + Module 16 Session
+
+## Completed in this session
+- Fixed Next.js production build by wrapping `/portfolio` `useSearchParams()` usage in a Suspense boundary.
+- Added `backend/app/services/tickers/recommendations.py` with cosine-similarity scoring and objective/aggression boosts.
+- Added `GET /api/v1/tickers/recommend` endpoint and `backend/tests/test_ticker_recommendations.py`.
+- Added `frontend/hooks/useTickerRecommendations.ts` and `frontend/components/profiler/VehicleSuggestions.tsx`.
+- Integrated registry-backed vehicle tables into `AdvisorReport` with static fallback when registry is empty.
+- Synchronized `docs/BUILD.md`, `docs/ROADMAP.md`, and `docs/KNOWN_GAPS.md` with current module status.
+
+## Validation record (this session)
+- **Date/Time:** 2026-06-21 (local)
+- **Production build:** `cd frontend && npm run build` → success (13 static routes)
+- **Backend recommendations:** `pytest tests/test_ticker_recommendations.py tests/test_ticker_registry.py` → `10 passed`
+- **Frontend integration:** `cd frontend && npm run test` → `6 files, 22 tests passed`
+- **Recommend endpoint:** `GET /api/v1/tickers/recommend?growth_pct=15&income_pct=65&safety_pct=20&aggression=55&asset_class=equities` → ranked registry tickers with scores
+
+## Next single priority
+Implement Module 15 market callouts — wire live data-status, yield curve, and asset risk scores into the advisor report narrative.

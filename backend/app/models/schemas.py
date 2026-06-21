@@ -183,6 +183,19 @@ class TickerValidateResponse(BaseModel):
     message: str | None = None
 
 
+class TickerRecommendation(BaseModel):
+    ticker: str
+    display_name: str
+    asset_class: AssetClassKind
+    primary_objective: ObjectiveKind
+    match_score: float
+    rationale: str
+
+
+class TickerRecommendResponse(BaseModel):
+    recommendations: list[TickerRecommendation]
+
+
 # --- Client workspace ---
 
 OutlineStatus = Literal["draft", "presented", "implemented"]

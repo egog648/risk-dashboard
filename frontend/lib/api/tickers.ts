@@ -1,5 +1,9 @@
 import { apiClient } from "./client";
-import type { CustomTicker, CustomTickerCreate } from "@/types/tickers";
+import type {
+  CustomTicker,
+  CustomTickerCreate,
+  TickerRecommendResponse,
+} from "@/types/tickers";
 
 export async function fetchTickers(params?: {
   asset_class?: string;
@@ -32,4 +36,18 @@ export async function validateTickerSymbol(ticker: string): Promise<boolean> {
     ticker,
   });
   return data.valid;
+}
+
+export async function fetchTickerRecommendations(params: {
+  growth_pct: number;
+  income_pct: number;
+  safety_pct: number;
+  aggression: number;
+  asset_class: string;
+  limit?: number;
+}): Promise<TickerRecommendResponse> {
+  const { data } = await apiClient.get<TickerRecommendResponse>("/tickers/recommend", {
+    params,
+  });
+  return data;
 }

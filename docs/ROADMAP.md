@@ -83,7 +83,11 @@ Goal: systematize client portfolio building with Finesse Funds profiler, custom 
 - Completed: documentation reorg (`docs/README.md`, `docs/DOC_RULES.md`, `docs/sessions/`).
 - Completed: Module 10 Finesse branding (design tokens, shared UI).
 - Completed: Module 11 custom ticker registry (CRUD API, `/tickers` page, tests).
-- Planned: Modules 12–16 (profiler, mapping, clients, report, recommendations).
+- Completed: Module 12 investment profiler (`/profiler`, scoring, advisor report shell).
+- Completed: Module 13 profile → portfolio bridge (`mapToPortfolioWeights`, optimizer prefill).
+- Completed: Module 14 client workspace (`/clients`, profiles, portfolios API).
+- Completed: Module 16 registry-backed vehicle recommendations (`GET /tickers/recommend`, profiler summary integration).
+- Partial: Module 15 advisor report (narrative + vehicles done; live market callouts pending).
 - Deferred: Module 17 advanced analytics.
 
 ### Module Map

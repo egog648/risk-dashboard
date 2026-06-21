@@ -39,6 +39,34 @@ interface ProfilerContextValue {
 
 const ProfilerContext = createContext<ProfilerContextValue | null>(null);
 
+const PROFILER_DRAFT_STORAGE_KEY = "risk-dashboard-profiler-draft";
+
+interface ProfilerDraft {
+  answers: ProfilerAnswers;
+  clientName: string;
+  selectedClientId: number | "";
+}
+
+function loadProfilerDraft(): ProfilerDraft | null {
+  if (typeof window === "undefined") return null;
+  const raw = sessionStorage.getItem(PROFILER_DRAFT_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as ProfilerDraft;
+  } catch {
+    return null;
+  }
+}
+
+function saveProfilerDraft(draft: ProfilerDraft) {
+  if (typeof window === "undefined") return;
+  if (Object.keys(draft.answers).length === 0 && !draft.clientName.trim()) {
+    sessionStorage.removeItem(PROFILER_DRAFT_STORAGE_KEY);
+    return;
+  }
+  sessionStorage.setItem(PROFILER_DRAFT_STORAGE_KEY, JSON.stringify(draft));
+}
+
 export function ProfilerProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { data: clients, isLoading: clientsLoading } = useClients();
@@ -47,6 +75,7 @@ export function ProfilerProvider({ children }: { children: ReactNode }) {
   const [clientName, setClientName] = useState("");
   const [selectedClientId, setSelectedClientId] = useState<number | "">("");
   const [answers, setAnswers] = useState<ProfilerAnswers>({});
+  const [draftHydrated, setDraftHydrated] = useState(false);
   const [wizardKey, setWizardKey] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
@@ -56,6 +85,22 @@ export function ProfilerProvider({ children }: { children: ReactNode }) {
     typeof selectedClientId === "number" ? selectedClientId : 0
   );
   const lastLoadedClientRef = useRef<number | "">("");
+
+  useEffect(() => {
+    const draft = loadProfilerDraft();
+    if (draft) {
+      setAnswers(draft.answers);
+      setClientName(draft.clientName);
+      setSelectedClientId(draft.selectedClientId);
+      setWizardKey((k) => k + 1);
+    }
+    setDraftHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!draftHydrated) return;
+    saveProfilerDraft({ answers, clientName, selectedClientId });
+  }, [answers, clientName, selectedClientId, draftHydrated]);
 
   useEffect(() => {
     if (!selectedClientId || !profiles) return;
@@ -142,6 +187,7 @@ export function ProfilerProvider({ children }: { children: ReactNode }) {
     lastLoadedClientRef.current = "";
     setSaveStatus("");
     setSaveError(false);
+    sessionStorage.removeItem(PROFILER_DRAFT_STORAGE_KEY);
   }, []);
 
   const bumpWizardKey = useCallback(() => setWizardKey((k) => k + 1), []);
