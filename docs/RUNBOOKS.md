@@ -39,7 +39,7 @@ Workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — runs on 
 
 | Job | Command (local equivalent) | Notes |
 |-----|---------------------------|-------|
-| `backend-test` | `cd backend && pytest tests/ -q` | In-memory SQLite; no API keys |
+| `backend-test` | `cd backend && pytest tests/ -q` | Dummy API keys + `init_db()`; see workflow env |
 | `frontend-test` | `cd frontend && npm run test` | MSW mocks; no backend |
 | `frontend-build` | `cd frontend && npm run build` | Production compile check |
 

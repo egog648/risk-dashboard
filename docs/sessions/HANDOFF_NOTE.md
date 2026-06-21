@@ -209,7 +209,7 @@ Add GitHub Actions CI workflow to enforce backend pytest, frontend Vitest, and `
 ## CI validation record
 - **Workflow:** `CI` on push/PR to `main`
 - **Jobs:** backend pytest, frontend Vitest, frontend build (no API secrets; e2e deferred)
-- **First green run:** _(record URL after push)_
+- **First green run:** https://github.com/egog648/risk-dashboard/actions/runs/27917989719 (all 3 jobs passed)
 
 ## Next single priority
 Wire production Docker profile into compose (`KNOWN_GAPS.md` #3).
