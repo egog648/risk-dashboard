@@ -167,16 +167,20 @@ Uses T10Y2Y (yield curve spread), VIX, and S&P 500 price momentum.
 | T10Y2Y < 0 (inverted), 3M momentum > 0 | trough |
 | Fallback | expansion if 12M > 0, else contraction |
 
+The fallback can label equities **expansion** during late-cycle conditions (flat/inverted curve, rich valuations) when 12-month price momentum remains positive. Cycle phase is display-only until scenario-adjusted returns (§6) are implemented.
+
 ### Credit — `detect_credit_cycle(hy_spread, ig_spread, yield_curve)`
 
 Driven by HY spread level (absolute risk appetite) and 3-month direction (trend).
 
 | Condition | Phase |
 |---|---|
-| HY < 400bps, tightening, curve positive | expansion |
-| HY < 500bps, widening | peak |
-| HY > 500bps, widening | contraction |
-| HY > 600bps, tightening | trough |
+| HY < 4.0% (OAS), tightening, curve positive | expansion |
+| HY < 5.0%, widening | peak |
+| HY > 5.0%, widening | contraction |
+| HY > 6.0%, tightening | trough |
+
+FRED HY OAS (`BAMLH0A0HYM2`) is stored in **percent**, not basis points.
 
 ### Hard Assets — `detect_inflation_cycle(cpi, breakeven)`
 

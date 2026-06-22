@@ -8,7 +8,6 @@ import {
   usePortfolio,
   useProfiles,
 } from "@/hooks/useClients";
-import { mapProfileToPortfolioWeights } from "@/lib/profiler/mapProfileToPortfolioWeights";
 import { constraintsFromProfile } from "@/lib/profiler/constraints";
 import { DEFAULT_WEIGHTS } from "@/types/portfolio";
 import type { ClientProfile } from "@/types/clients";
@@ -38,11 +37,6 @@ export function useSelectedPortfolioLoadout() {
     return profiles.find((profile) => profile.id === portfolio.effective_profile_id) ?? null;
   }, [profiles, portfolio?.effective_profile_id]);
 
-  const suggestedWeights = useMemo(
-    () => (effectiveProfile ? mapProfileToPortfolioWeights(effectiveProfile) : null),
-    [effectiveProfile]
-  );
-
   const constraints = useMemo<OptimizationConstraintsPayload | null>(
     () => (effectiveProfile ? constraintsFromProfile(effectiveProfile) : null),
     [effectiveProfile]
@@ -53,9 +47,8 @@ export function useSelectedPortfolioLoadout() {
   const sliderWeights = useMemo<PortfolioWeights>(() => {
     if (!hasSelection) return DEFAULT_WEIGHTS;
     if (latestOutline?.weights) return latestOutline.weights;
-    if (suggestedWeights) return suggestedWeights;
     return DEFAULT_WEIGHTS;
-  }, [hasSelection, latestOutline?.weights, suggestedWeights]);
+  }, [hasSelection, latestOutline?.weights]);
 
   const loadedFromOutline = Boolean(latestOutline?.weights);
 
@@ -86,7 +79,6 @@ export function useSelectedPortfolioLoadout() {
     client: hasSelection ? client : undefined,
     portfolio: hasSelection ? portfolio : undefined,
     effectiveProfile,
-    suggestedWeights,
     constraints,
     sliderWeights,
     loadedFromOutline,

@@ -115,7 +115,9 @@ start http://localhost:3000
 
 **Query params on `/all` endpoints:** `include_history` (default `false`) — when `false`, returns metrics without 756-point price history (faster overview loads).
 
-**Portfolio frontier body:** `FrontierComputeRequest` with `weights` (required) and optional `suggested_weights`. Legacy flat `PortfolioWeights` body still accepted.
+**Portfolio frontier body:** `FrontierComputeRequest` with `weights` (required). Optional `constraints` and query `profile_id` for governor-aware optimization. Server computes `suggested` (best return at vol cap) when constraints are present. Legacy `suggested_weights` body field still accepted as fallback.
+
+**Asset card calculations:** See [`modules/05_RISK_ENGINE.md`](modules/05_RISK_ENGINE.md#asset-card-calculation-pipeline-design) for the authoritative pipeline (risk metrics, expected return, cycle phase, risk score) and known limitations vs the portfolio optimizer.
 
 Full Swagger UI: http://localhost:8000/docs
 

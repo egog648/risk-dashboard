@@ -62,13 +62,14 @@ def detect_credit_cycle(
     )
     yc = yield_curve.iloc[-1] if not yield_curve.empty else 0
 
-    if hy < 400 and hy_change < 0 and yc > 0:
+    # FRED OAS series are in percent (e.g. 3.5 = 3.5%), not basis points.
+    if hy < 4.0 and hy_change < 0 and yc > 0:
         return "expansion"
-    elif hy < 500 and hy_change > 0:
+    elif hy < 5.0 and hy_change > 0:
         return "peak"
-    elif hy > 500 and hy_change > 0:
+    elif hy > 5.0 and hy_change > 0:
         return "contraction"
-    elif hy > 600 and hy_change < 0:
+    elif hy > 6.0 and hy_change < 0:
         return "trough"
     return "expansion" if hy_change < 0 else "contraction"
 

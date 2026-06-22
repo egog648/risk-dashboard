@@ -23,6 +23,7 @@ from app.services.risk.efficient_frontier import build_frontier, weights_to_fron
 from app.services.risk.expected_returns import (
     CANONICAL_WEIGHT_KEYS,
     build_portfolio_expected_returns,
+    fetch_macro_context,
 )
 from app.services.risk.income_analysis import build_income_yield_by_bucket, compute_income_adequacy
 from app.services.risk.stress import run_stress_scenarios
@@ -93,6 +94,7 @@ def compute_frontier(
         raise HTTPException(status_code=503, detail="Insufficient price data. Run data refresh first.")
 
     expected_ret = build_portfolio_expected_returns(db)
+    risk_free = fetch_macro_context(db).risk_free
     if set(body.weights.model_dump().keys()) != CANONICAL_WEIGHT_KEYS:
         raise HTTPException(status_code=500, detail="Portfolio weight schema out of sync with optimizer keys.")
 
@@ -105,6 +107,7 @@ def compute_frontier(
             n_frontier_points=n_frontier_points,
             n_monte_carlo=n_monte_carlo,
             constraints=opt_constraints,
+            risk_free=risk_free,
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -114,7 +117,7 @@ def compute_frontier(
 
     mu = result["mu"]
     cov = result["cov"]
-    current_point = weights_to_frontier_point(filtered, mu, cov)
+    current_point = weights_to_frontier_point(filtered, mu, cov, risk_free=risk_free)
 
     constraint_warnings = list(result.get("constraint_warnings", []))
     max_vol = constraints_payload.max_portfolio_vol if constraints_payload else None
@@ -123,10 +126,12 @@ def compute_frontier(
             f"Current portfolio volatility ({current_point.volatility:.1%}) exceeds governor cap ({max_vol:.1%})."
         )
 
-    suggested_point = None
-    if body.suggested_weights is not None:
+    suggested_point = result.get("suggested")
+    if suggested_point is None and body.suggested_weights is not None:
         suggested_filtered = _normalize_weights(body.suggested_weights, available)
-        suggested_point = weights_to_frontier_point(suggested_filtered, mu, cov)
+        suggested_point = weights_to_frontier_point(
+            suggested_filtered, mu, cov, risk_free=risk_free
+        )
         if max_vol is not None and suggested_point.volatility > max_vol + 1e-6:
             constraint_warnings.append(
                 f"Suggested portfolio volatility ({suggested_point.volatility:.1%}) exceeds governor cap ({max_vol:.1%})."

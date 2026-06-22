@@ -344,3 +344,21 @@ Module 17 Advanced Analytics (deferred) or low-priority gaps #8, #15, #16.
 
 ## Next single priority
 Low-priority gaps #8 (registry tickers on frontier), #15 (`datetime.utcnow`), #16 (React Query staleTime).
+
+---
+
+# Handoff Note — Frontier Fix + Asset Card Calculation Design (2026-06-22)
+
+## Completed
+- **Frontier 500 fix:** Normalized EWMA covariance MultiIndex to plain asset labels before serializing `correlation_matrix` (`efficient_frontier.py`). Verified `POST /api/v1/portfolio/frontier` → `200` after backend restart.
+- **Frontier optimizer corrections:** `min_vol` uses true `min_volatility()`; `suggested` = best return at governor vol cap; frontier curve spans min vol → max vol; max Sharpe capped fallback when unconstrained optimum exceeds cap.
+- **Frontend:** Suggested portfolio computed server-side from profile constraints; current weights decoupled from profile-mapped prefill.
+- **Credit cycle thresholds:** Fixed FRED OAS units (percent, not bps) in `cycle_analysis.py`.
+- **Documentation:** Added [Asset Card Calculation Pipeline](modules/05_RISK_ENGINE.md#asset-card-calculation-pipeline-design) to `05_RISK_ENGINE.md`; synced `BUILD.md`, `METHODOLOGY.md` cycle tables.
+
+## Validation record (2026-06-22)
+- **Backend:** `GET /health` → `200`; `POST /api/v1/portfolio/frontier` → `200` (live DB)
+- **Servers restarted:** backend `127.0.0.1:8000`, frontend `localhost:3000`
+
+## Next single priority
+Implement scenario-adjusted expected returns (METHODOLOGY §6) and tighten equity cycle fallback using valuation z-score.

@@ -100,7 +100,7 @@ export function EfficientFrontierChart({ data }: EfficientFrontierChartProps) {
           {/* Efficient frontier curve */}
           <Line
             data={frontierData}
-            type="monotone"
+            type="linear"
             dataKey="y"
             stroke="#f59e0b"
             strokeWidth={2}
@@ -129,6 +129,16 @@ export function EfficientFrontierChart({ data }: EfficientFrontierChartProps) {
               strokeWidth={1.5}
             />
           )}
+          {data.suggested && (
+            <ReferenceDot
+              x={data.suggested.volatility * 100}
+              y={data.suggested.expected_return * 100}
+              r={6}
+              fill="#3b82f6"
+              stroke={REFERENCE_STROKE}
+              strokeWidth={1.5}
+            />
+          )}
           {data.current && (
             <ReferenceDot
               x={data.current.volatility * 100}
@@ -149,6 +159,7 @@ export function EfficientFrontierChart({ data }: EfficientFrontierChartProps) {
         <LegendDot color="#f59e0b" label="Frontier" />
         <LegendDot color="#22c55e" label="Max Sharpe" />
         <LegendDot color="#a855f7" label="Min Vol" />
+        {data.suggested && <LegendDot color="#3b82f6" label="Suggested" />}
         <LegendDot color="#f97316" label="Current" />
       </div>
     </div>

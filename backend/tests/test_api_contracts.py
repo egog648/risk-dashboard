@@ -12,6 +12,18 @@ from app.models.schemas import (
     PortfolioWeights,
     YieldCurveResponse,
 )
+from app.services.risk import expected_returns
+
+
+def _mock_macro_context():
+    return expected_returns.MacroContext(
+        cpi_yoy=2.5,
+        risk_free=0.04,
+        ytm_10y=0.04,
+        real_rate=0.015,
+        ig_spread_bps=1.1,
+        hy_spread_bps=4.0,
+    )
 
 
 def _sample_asset_metrics(asset_class: str, sub_class: str) -> dict:
@@ -148,6 +160,7 @@ async def test_portfolio_frontier_contract(client, monkeypatch):
         "build_portfolio_expected_returns",
         lambda _db: {key: 0.06 for key in portfolio.ASSET_TICKERS},
     )
+    monkeypatch.setattr(portfolio, "fetch_macro_context", lambda _db: _mock_macro_context())
 
     point = {
         "expected_return": 0.08,
@@ -168,13 +181,19 @@ async def test_portfolio_frontier_contract(client, monkeypatch):
             "frontier": [point],
             "max_sharpe": point,
             "min_vol": point,
+            "suggested": None,
             "monte_carlo": [point],
             "correlation_matrix": {"equities_large": {"equities_large": 1.0}},
             "mu": mu,
             "cov": cov,
+            "constraint_warnings": [],
         },
     )
-    monkeypatch.setattr(portfolio, "weights_to_frontier_point", lambda _weights, _mu, _cov: point)
+    monkeypatch.setattr(
+        portfolio,
+        "weights_to_frontier_point",
+        lambda _weights, _mu, _cov, **kwargs: point,
+    )
 
     response = await client.post(
         "/api/v1/portfolio/frontier",
@@ -201,6 +220,7 @@ async def test_portfolio_frontier_suggested_contract(client, monkeypatch):
         "build_portfolio_expected_returns",
         lambda _db: {key: 0.06 for key in portfolio.ASSET_TICKERS},
     )
+    monkeypatch.setattr(portfolio, "fetch_macro_context", lambda _db: _mock_macro_context())
 
     point = {
         "expected_return": 0.08,
@@ -221,13 +241,19 @@ async def test_portfolio_frontier_suggested_contract(client, monkeypatch):
             "frontier": [point],
             "max_sharpe": point,
             "min_vol": point,
+            "suggested": None,
             "monte_carlo": [point],
             "correlation_matrix": {"equities_large": {"equities_large": 1.0}},
             "mu": mu,
             "cov": cov,
+            "constraint_warnings": [],
         },
     )
-    monkeypatch.setattr(portfolio, "weights_to_frontier_point", lambda _weights, _mu, _cov: point)
+    monkeypatch.setattr(
+        portfolio,
+        "weights_to_frontier_point",
+        lambda _weights, _mu, _cov, **kwargs: point,
+    )
 
     suggested_weights = PortfolioWeights(equities_large=0.4, cash=0.6)
     response = await client.post(

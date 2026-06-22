@@ -153,11 +153,12 @@ export const fixtures = {
       cash: { equities_large: 0.1, cash: 1 },
     },
     suggested: {
-      expected_return: 0.075,
-      volatility: 0.095,
-      sharpe: 0.68,
-      weights: { equities_large: 0.25, credit_government: 0.25, cash: 0.5 },
+      expected_return: 0.10,
+      volatility: 0.2,
+      sharpe: 0.72,
+      weights: { equities_large: 0.3, credit_government: 0.2, cash: 0.5 },
     },
+    constraints_applied: { min_cash: 0.05, max_portfolio_vol: 0.2 },
     constraint_warnings: [],
   } satisfies EfficientFrontierResponse,
   portfolioAnalytics: {

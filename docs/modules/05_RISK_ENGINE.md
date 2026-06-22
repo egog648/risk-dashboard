@@ -80,6 +80,87 @@ Assumptions version traceable via `GET /api/v1/data-status` → `assumptions_ver
 
 ---
 
+## Asset Card Calculation Pipeline (Design)
+
+Each dashboard **asset card** (`AssetClassCard`) renders one `AssetClassMetrics` payload from `GET /api/v1/{asset-class}/{sub-class}` or `/all`. All sub-classes share the pipeline in `AssetClassBase` (`backend/app/services/asset_classes/base.py`).
+
+### Data flow
+
+```
+Tiingo ETF prices (proxy ticker)  ──┐
+FRED macro series                 ──┼──► sub-class get_metrics()
+Shiller CAPE (large cap only)     ──┘         │
+                                              ▼
+                         build_standard_risk_stats()     ← historical (price-based)
+                         build_asset_class_expected_return() ← forward-looking (fundamental)
+                         detect_*_cycle()               ← macro regime label
+                         valuation_zscore()             ← 20y z-score on price/yield/spread
+                                              ▼
+                         compute_risk_score()           ← composite 0–100
+                         AssetClassMetrics response
+```
+
+### Per-field truth table
+
+| Card field | Source | Method | Notes |
+|---|---|---|---|
+| **Realized vol** | ETF daily prices | `realized_volatility(prices, window=63)` | ~3-month annualized log-return vol |
+| **Sharpe / Sortino** | ETF prices + FRED T-bill | `sharpe_ratio` / `sortino_ratio` (252d window) | **Historical** excess return over live risk-free rate |
+| **Max drawdown, VaR, CVaR** | ETF prices | `max_drawdown`, `value_at_risk`, `conditional_var` | Historical tail risk |
+| **Expected return** | Fundamentals + macro | `build_asset_class_expected_return(db, key)` | **Forward-looking**; same resolver as portfolio optimizer μ |
+| **Valuation score (z)** | Price/yield/spread history | `valuation_zscore(current, series, 20y)` | −3 cheap … +3 expensive |
+| **Risk score (0–100)** | Composite | `compute_risk_score(vol, max_dd, var_99, val_z)` | Four 0–25 components (see above) |
+| **Cycle phase** | FRED macro only | `detect_equity_cycle` / `detect_credit_cycle` / etc. | **Display-only** today — does not adjust expected return |
+| **Implied vol** | VIX (equities only) | Latest VIX / 100 | Optional overlay on equity cards |
+
+### Expected return by sub-class (shared with optimizer)
+
+| Sub-class | Proxy ETF | Expected return model |
+|---|---|---|
+| Large / mid / small cap | SPY / MDY / IWM | Shiller earnings yield + size premium + CPI + real growth |
+| Govt / IG / HY credit | TLT / LQD / HYG | 10Y yield + OAS spread − default loss |
+| Gold / commodities | GLD / DBC | CPI + real-rate premium (commodities reuse gold proxy) |
+| REITs | VNQ | Trailing dividend yield + NAV growth − rate drag |
+| Cash | SHY | T-bill − CPI (real yield) |
+
+### Cycle phase rules (current implementation)
+
+**Equities** (`detect_equity_cycle`): T10Y2Y, VIX, S&P 500 momentum.
+
+| Condition | Phase |
+|---|---|
+| T10Y2Y > 0.5%, 12M momentum > 10%, VIX < 20 | expansion |
+| T10Y2Y > 0%, 12M momentum > 0%, VIX ≥ 20 | peak |
+| T10Y2Y < 0, 3M momentum < 0 | contraction |
+| T10Y2Y < 0, 3M momentum > 0 | trough |
+| **Fallback** (no rule matched) | expansion if 12M momentum > 0, else contraction |
+
+The fallback explains cases where macro looks late-cycle (flat/inverted curve, rich valuations) but **positive 12-month price momentum** still yields `expansion`. Tightening this fallback (e.g. require valuation z-score or cap momentum weight) is a planned improvement — see `METHODOLOGY.md` §6 scenario adjustments.
+
+**Credit** (`detect_credit_cycle`): HY OAS level and 3M direction. FRED OAS series are in **percent** (e.g. 4.5 = 4.5%), not basis points. Thresholds: `< 4.0` expansion, `< 5.0` peak, `> 5.0` widening → contraction, `> 6.0` tightening → trough.
+
+**Hard assets** (`detect_inflation_cycle`): CPI YoY + 10Y breakeven.
+
+**Cash** (`detect_cash_cycle`): Fed Funds direction + real rate sign.
+
+### Parity with portfolio optimizer
+
+| Input | Asset cards | Portfolio optimizer |
+|---|---|---|
+| Expected return μ | `build_asset_class_expected_return` | `build_portfolio_expected_returns` (same `compute_expected_return`) |
+| Vol / Sharpe on card | Historical from ETF prices | Portfolio vol from EWMA covariance + fundamental μ |
+| Cycle phase | Shown on card | **Not wired** to μ or frontier (spec-only in METHODOLOGY §6) |
+| Risk-free rate | Live FRED DTB3 | Live FRED DTB3 (frontier Sharpe evaluation) |
+
+### Known gaps / next design work
+
+1. **Scenario-adjusted returns** — valuation × cycle multipliers on expected return (METHODOLOGY §6, not implemented).
+2. **Equity cycle fallback** — too permissive when momentum is positive but curve is flat/inverted; consider `peak` when valuation z > 1.5 and VIX elevated.
+3. **Sharpe inconsistency** — card Sharpe is historical; frontier Sharpe uses fundamental μ. Document both on UI or align labels.
+4. **Commodities expected return** — currently reuses gold formula; needs independent proxy when data available.
+
+---
+
 ## `efficient_frontier.py` — Portfolio Optimizer
 
 Uses **PyPortfolioOpt** + **scipy.optimize**.
@@ -93,13 +174,16 @@ Uses **PyPortfolioOpt** + **scipy.optimize**.
 ### Output
 ```python
 {
-  "frontier": [...],          # 50 points on the efficient frontier curve
-  "max_sharpe": {...},        # Maximum Sharpe portfolio
+  "frontier": [...],          # Points on the efficient frontier curve
+  "max_sharpe": {...},        # Maximum Sharpe (capped at governor vol when constrained)
   "min_vol": {...},           # Minimum volatility portfolio
-  "monte_carlo": [...],       # 2000 random portfolios
-  "correlation_matrix": {...} # Pairwise correlations
+  "suggested": {...},         # Best return at governor max_portfolio_vol (when constraints set)
+  "monte_carlo": [...],       # Random long-only portfolios
+  "correlation_matrix": {...} # EWMA-derived pairwise correlations (string asset keys)
 }
 ```
+
+**2026-06-22 fix:** EWMA covariance from pandas uses a MultiIndex; normalize to plain asset labels before building `correlation_matrix` (prevents Pydantic 500 on `/portfolio/frontier`).
 
 ### Tuning
 To adjust optimization constraints, edit `build_frontier()` in `efficient_frontier.py`:

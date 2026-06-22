@@ -78,7 +78,6 @@ function PortfolioPageContent() {
   const lastPortfolioRunRef = useRef<{
     loadKey: string;
     weightsKey: string;
-    suggestedKey: string;
   } | null>(null);
 
   const { grouped, isLoading: listLoading } = useAllClientPortfolios();
@@ -91,17 +90,12 @@ function PortfolioPageContent() {
   const isError = isMutationError || isPrefillError;
 
   const runFrontier = useCallback(
-    (
-      nextWeights: PortfolioWeights,
-      suggestedWeights?: PortfolioWeights | null,
-      highDetailMode = highDetail
-    ) => {
+    (nextWeights: PortfolioWeights, highDetailMode = highDetail) => {
       setSelectedPortfolio(null);
       setPrefillData(null);
       setIsPrefillError(false);
       mutate({
         weights: nextWeights,
-        suggestedWeights,
         highDetail: highDetailMode,
         constraints: loadout.constraints,
         profileId: loadout.effectiveProfile?.id,
@@ -145,28 +139,21 @@ function PortfolioPageContent() {
 
     const loadKey = `${loadout.clientId}:${loadout.portfolioId}`;
     const weightsKey = JSON.stringify(loadout.sliderWeights);
-    const suggestedKey = loadout.suggestedWeights
-      ? JSON.stringify(loadout.suggestedWeights)
-      : "";
     const last = lastPortfolioRunRef.current;
-    if (
-      last?.loadKey === loadKey &&
-      last.weightsKey === weightsKey &&
-      last.suggestedKey === suggestedKey
-    ) {
+    if (last?.loadKey === loadKey && last.weightsKey === weightsKey) {
       return;
     }
-    lastPortfolioRunRef.current = { loadKey, weightsKey, suggestedKey };
+    lastPortfolioRunRef.current = { loadKey, weightsKey };
 
     setWeights(loadout.sliderWeights);
     setPrefilled(true);
     setPrefillBanner(
       loadout.loadedFromOutline
         ? `Loaded from ${loadout.client.name} — ${loadout.portfolio.name}`
-        : `Loaded suggested weights for ${loadout.client.name} — ${loadout.portfolio.name}`
+        : `Loaded ${loadout.client.name} — ${loadout.portfolio.name} (default weights; suggested portfolio from risk profile)`
     );
 
-    runFrontier(loadout.sliderWeights, loadout.suggestedWeights);
+    runFrontier(loadout.sliderWeights);
   }, [
     loadout.hasSelection,
     loadout.isLoading,
@@ -175,7 +162,6 @@ function PortfolioPageContent() {
     loadout.clientId,
     loadout.portfolioId,
     loadout.sliderWeights,
-    loadout.suggestedWeights,
     loadout.loadedFromOutline,
     runFrontier,
   ]);
@@ -189,7 +175,7 @@ function PortfolioPageContent() {
   };
 
   const handleRun = () => {
-    runFrontier(weights, loadout.suggestedWeights);
+    runFrontier(weights);
   };
 
   const handleApplyOptimized = (point: FrontierPoint) => {
@@ -211,7 +197,7 @@ function PortfolioPageContent() {
 
   const showSuggested =
     loadout.hasSelection &&
-    Boolean(loadout.effectiveProfile && loadout.effectiveProfile.questions_answered >= 10);
+    Boolean(loadout.constraints?.max_portfolio_vol);
 
   const suggestedRiskLabel = loadout.effectiveProfile
     ? `${loadout.effectiveProfile.risk_label} (${loadout.effectiveProfile.governed_aggression_pct}%)`
