@@ -289,6 +289,9 @@ def _portfolio_to_response(db: Session, row: Portfolio) -> PortfolioResponse:
         notes=row.notes,
         profile_override_id=row.profile_override_id,
         effective_profile_id=effective.id if effective else None,
+        portfolio_value_usd=row.portfolio_value_usd,
+        annual_income_need_usd=row.annual_income_need_usd,
+        annual_income_need_pct=row.annual_income_need_pct,
         created_at=row.created_at,
         updated_at=row.updated_at,
     )
@@ -320,6 +323,14 @@ def update_portfolio(
         row.name = payload.name.strip()
     if payload.notes is not None:
         row.notes = payload.notes
+    if payload.portfolio_value_usd is not None:
+        row.portfolio_value_usd = payload.portfolio_value_usd
+    if payload.annual_income_need_usd is not None:
+        row.annual_income_need_usd = payload.annual_income_need_usd
+        row.annual_income_need_pct = None
+    if payload.annual_income_need_pct is not None:
+        row.annual_income_need_pct = payload.annual_income_need_pct
+        row.annual_income_need_usd = None
     row.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(row)

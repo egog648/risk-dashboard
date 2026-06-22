@@ -6,9 +6,9 @@ This roadmap moves the project from prototype to stable and handoff-friendly dev
 
 **Phase 3 — Production Readiness** (active)
 
-**Next single priority:** Module 17 Advanced Analytics (deferred) or low-priority gaps #8, #15, #16.
+**Next single priority:** Low-priority gaps #8, #15, #16.
 
-Phases 1, 2, and 4 are closed. Refactor Track and post-refactor enhancements are complete. CI enforces backend pytest, frontend Vitest, and `next build` on every push/PR to `main`.
+Phases 1, 2, and 4 are closed. Module 17 (Advanced Analytics) is complete. Refactor Track and post-refactor enhancements are complete. CI enforces backend pytest, frontend Vitest, and `next build` on every push/PR to `main`.
 
 ---
 
@@ -80,7 +80,7 @@ Goal: make runtime and methodology resilient enough for more serious deployment/
 ## Phase 4 — Advisory Practice Tools
 Goal: systematize client portfolio building with Finesse Funds profiler, custom ticker registry, and advisor workflow.
 
-**Status: Feature-complete** (Module 17 deferred)
+**Status: Feature-complete** (Module 17 done 2026-06-21)
 
 ### Progress Snapshot
 - Completed: documentation reorg (`docs/README.md`, `docs/DOC_RULES.md`, `docs/sessions/`).
@@ -91,7 +91,7 @@ Goal: systematize client portfolio building with Finesse Funds profiler, custom 
 - Completed: Module 14 client workspace (`/clients`, profiles, portfolios API).
 - Completed: Module 15 advisor report with live market callouts (yield curve, risk scores, credit cycle, data-status).
 - Completed: Module 16 registry-backed vehicle recommendations (`GET /tickers/recommend`, profiler summary integration).
-- Deferred: Module 17 advanced analytics.
+- Completed: Module 17 advanced analytics (governor-aware frontier, income adequacy, stress scenarios).
 
 ### Module Map
 See `docs/BUILD.md` Part 2 (Modules 10–17).

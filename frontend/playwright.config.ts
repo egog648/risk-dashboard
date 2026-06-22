@@ -35,14 +35,17 @@ function loadBackendDotEnv(): Record<string, string> {
 
 const backendDotEnv = loadBackendDotEnv();
 const reuseServers = process.env.PW_REUSE_SERVER === "1";
+const e2eDbFile = path.join(backendDir, "data", "e2e_test.db");
+const e2eDatabaseUrl =
+  process.env.DATABASE_URL ||
+  `sqlite:///${e2eDbFile.replace(/\\/g, "/")}`;
 
 const backendEnv = {
   FRED_API_KEY:
     process.env.FRED_API_KEY || backendDotEnv.FRED_API_KEY || "ci-test-key",
   TIINGO_API_KEY:
     process.env.TIINGO_API_KEY || backendDotEnv.TIINGO_API_KEY || "ci-test-key",
-  DATABASE_URL:
-    process.env.DATABASE_URL || "sqlite:///./data/e2e_test.db",
+  DATABASE_URL: e2eDatabaseUrl,
   APP_ENV: "development",
   CORS_ORIGINS: JSON.stringify([
     frontendOrigin,

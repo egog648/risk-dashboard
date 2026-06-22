@@ -7,6 +7,7 @@ import type {
   Portfolio,
   PortfolioCreate,
   PortfolioOutline,
+  PortfolioUpdate,
 } from "@/types/clients";
 
 export async function fetchClients(): Promise<Client[]> {
@@ -75,6 +76,18 @@ export async function fetchPortfolio(
 ): Promise<Portfolio> {
   const { data } = await apiClient.get<Portfolio>(
     `/clients/${clientId}/portfolios/${portfolioId}`
+  );
+  return data;
+}
+
+export async function updatePortfolio(
+  clientId: number,
+  portfolioId: number,
+  payload: PortfolioUpdate
+): Promise<Portfolio> {
+  const { data } = await apiClient.put<Portfolio>(
+    `/clients/${clientId}/portfolios/${portfolioId}`,
+    payload
   );
   return data;
 }

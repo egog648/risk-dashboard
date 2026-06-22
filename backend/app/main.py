@@ -82,4 +82,21 @@ async def on_shutdown():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    from app.core.config import settings
+    from app.core.database import _sqlite_file_path
+
+    route_paths = {
+        getattr(route, "path", "")
+        for route in app.routes
+        if hasattr(route, "path")
+    }
+    sqlite_path = str(_sqlite_file_path() or "")
+    return {
+        "status": "ok",
+        "database_url": settings.DATABASE_URL,
+        "database_file": sqlite_path,
+        "capabilities": {
+            "portfolio_analytics": "/api/v1/portfolio/analytics" in route_paths,
+            "suggested_frontier": True,
+        },
+    }

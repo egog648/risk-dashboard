@@ -18,19 +18,62 @@ export interface FrontierPoint {
   weights: Record<string, number>;
 }
 
+export interface OptimizationConstraintsPayload {
+  min_cash?: number | null;
+  max_portfolio_vol?: number | null;
+}
+
 export interface FrontierRequest {
   weights: PortfolioWeights;
   suggested_weights?: PortfolioWeights;
+  constraints?: OptimizationConstraintsPayload;
 }
 
 export interface EfficientFrontierResponse {
   frontier: FrontierPoint[];
-  max_sharpe: FrontierPoint;
-  min_vol: FrontierPoint;
+  max_sharpe: FrontierPoint | null;
+  min_vol: FrontierPoint | null;
   current: FrontierPoint;
   monte_carlo: FrontierPoint[];
   correlation_matrix: Record<string, Record<string, number>>;
   suggested?: FrontierPoint | null;
+  constraints_applied?: OptimizationConstraintsPayload | null;
+  constraint_warnings?: string[];
+}
+
+export interface IncomeAdequacyResult {
+  portfolio_yield: number;
+  annual_income_estimate?: number | null;
+  annual_income_need?: number | null;
+  gap_usd?: number | null;
+  gap_pct?: number | null;
+  status: "adequate" | "shortfall" | "unknown";
+}
+
+export interface StressScenarioResult {
+  id: string;
+  label: string;
+  start: string;
+  end: string;
+  portfolio_drawdown: number;
+  exceeds_tolerance: boolean;
+  tolerance_pct: number;
+}
+
+export interface PortfolioAnalyticsRequest {
+  weights: PortfolioWeights;
+  profile_id?: number | null;
+  answers?: Record<string, string>;
+  governor_cap_pct?: number | null;
+  portfolio_value_usd?: number | null;
+  annual_income_need_usd?: number | null;
+  annual_income_need_pct?: number | null;
+}
+
+export interface PortfolioAnalyticsResponse {
+  income?: IncomeAdequacyResult | null;
+  stress: StressScenarioResult[];
+  constraints_applied?: OptimizationConstraintsPayload | null;
 }
 
 export const DEFAULT_WEIGHTS: PortfolioWeights = {

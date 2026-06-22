@@ -158,7 +158,30 @@ export const fixtures = {
       sharpe: 0.68,
       weights: { equities_large: 0.25, credit_government: 0.25, cash: 0.5 },
     },
+    constraint_warnings: [],
   } satisfies EfficientFrontierResponse,
+  portfolioAnalytics: {
+    income: {
+      portfolio_yield: 0.04,
+      annual_income_estimate: 40000,
+      annual_income_need: 50000,
+      gap_usd: -10000,
+      gap_pct: -20,
+      status: "shortfall" as const,
+    },
+    stress: [
+      {
+        id: "gfc_2008",
+        label: "Global Financial Crisis",
+        start: "2007-10-01",
+        end: "2009-03-31",
+        portfolio_drawdown: -0.35,
+        exceeds_tolerance: true,
+        tolerance_pct: 0.25,
+      },
+    ],
+    constraints_applied: { min_cash: 0.05, max_portfolio_vol: 0.2 },
+  },
   clients: [
     {
       id: 1,
@@ -211,6 +234,9 @@ export const fixtures = {
         notes: null,
         profile_override_id: null,
         effective_profile_id: 10,
+        portfolio_value_usd: null,
+        annual_income_need_usd: null,
+        annual_income_need_pct: null,
         created_at: "2026-01-01T00:00:00Z",
         updated_at: "2026-01-01T00:00:00Z",
       },

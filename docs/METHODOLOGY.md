@@ -272,7 +272,42 @@ Computed in `backend/app/services/risk/efficient_frontier.py` via the `/api/v1/p
 - **Covariance**: EWMA with 252-day span (`ewm(span=252).cov() × 252`), giving more weight to recent correlations
 - **Optimizer**: `PyPortfolioOpt` for max-Sharpe and min-vol points; `scipy.optimize` for the frontier curve
 - **Monte Carlo**: 2,000 random weight draws plotted as a scatter cloud
-- **Constraints**: long-only, weights sum to 1
+- **Constraints**: long-only, weights sum to 1; optional governor constraints (Module 17):
+  - `min_cash` from `governor_cap_pct`: cap ≤30 → 20%, ≤60 → 12%, else 5%
+  - `max_portfolio_vol` = `0.06 + (governor_cap_pct / 100) × 0.14`
+
+---
+
+## 7a. Income Adequacy (Module 17)
+
+Portfolio-level fields on the client workspace (`portfolio_value_usd`, `annual_income_need_usd` or `annual_income_need_pct`).
+
+Estimated portfolio yield = weighted sum of per-bucket income proxies:
+
+| Bucket | Yield source |
+|--------|----------------|
+| Equities large | Shiller CAPE earnings yield |
+| Equities mid/small | Large-cap yield + size premium |
+| Credit IG/HY | `return_assumptions.yaml` coupon proxies |
+| REITs | VNQ trailing dividend yield |
+| Cash / gov | Risk-free / 10Y yield proxies |
+| Gold / commodities | 0% |
+
+Gap = estimated annual income − stated need. Status: adequate, shortfall, or unknown (missing portfolio value or need).
+
+---
+
+## 7b. Stress Scenarios (Module 17)
+
+Buy-and-hold replay of weighted proxy ETF prices over fixed windows:
+
+| Scenario | Window |
+|----------|--------|
+| Global Financial Crisis | 2007-10-01 → 2009-03-31 |
+| COVID crash | 2020-02-01 → 2020-04-30 |
+| Rate shock | 2022-01-01 → 2022-10-31 |
+
+Q6 max tolerable decline: A=0%, B=10%, C=15%, D=25%. Flag scenarios where portfolio drawdown exceeds tolerance.
 
 ---
 

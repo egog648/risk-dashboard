@@ -19,6 +19,9 @@ export const handlers = [
   http.get(`${BASE_URL}/data-status`, () => HttpResponse.json(fixtures.dataStatus)),
   http.get(`${BASE_URL}/credit/yield-curve`, () => HttpResponse.json(fixtures.yieldCurve)),
   http.post(`${BASE_URL}/portfolio/frontier`, () => HttpResponse.json(fixtures.frontier)),
+  http.post(`${BASE_URL}/portfolio/analytics`, () =>
+    HttpResponse.json(fixtures.portfolioAnalytics)
+  ),
   http.get(`${BASE_URL}/clients`, () => HttpResponse.json(advisoryMockState.clients)),
   http.post(`${BASE_URL}/clients`, async ({ request }) => {
     const payload = (await request.json()) as ClientCreate;
@@ -89,6 +92,22 @@ export const handlers = [
       return new HttpResponse(null, { status: 404 });
     }
     return HttpResponse.json(portfolio);
+  }),
+  http.put(`${BASE_URL}/clients/:clientId/portfolios/:portfolioId`, async ({ params, request }) => {
+    const clientId = Number(params.clientId);
+    const portfolioId = Number(params.portfolioId);
+    const portfolios = getClientPortfolios(clientId);
+    const index = portfolios.findIndex((p) => p.id === portfolioId);
+    if (index < 0) {
+      return new HttpResponse(null, { status: 404 });
+    }
+    const payload = (await request.json()) as Record<string, unknown>;
+    portfolios[index] = {
+      ...portfolios[index],
+      ...payload,
+      updated_at: new Date().toISOString(),
+    } as (typeof portfolios)[number];
+    return HttpResponse.json(portfolios[index]);
   }),
   http.get(`${BASE_URL}/clients/:clientId/portfolios/:portfolioId/outlines`, () =>
     HttpResponse.json(fixtures.portfolioOutlines)

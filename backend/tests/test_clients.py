@@ -162,6 +162,29 @@ async def test_portfolio_and_outline_workflow(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_portfolio_income_metadata_update(client: AsyncClient):
+    created = await _create_client(client, "Income Client")
+    portfolio_resp = await client.post(
+        f"/api/v1/clients/{created.id}/portfolios",
+        json={"name": "Taxable", "notes": None},
+    )
+    portfolio = PortfolioResponse.model_validate(portfolio_resp.json())
+
+    update_resp = await client.put(
+        f"/api/v1/clients/{created.id}/portfolios/{portfolio.id}",
+        json={
+            "portfolio_value_usd": 1_000_000,
+            "annual_income_need_usd": 40_000,
+        },
+    )
+    assert update_resp.status_code == 200
+    updated = PortfolioResponse.model_validate(update_resp.json())
+    assert updated.portfolio_value_usd == 1_000_000
+    assert updated.annual_income_need_usd == 40_000
+    assert updated.annual_income_need_pct is None
+
+
+@pytest.mark.asyncio
 async def test_portfolio_profile_override(client: AsyncClient):
     created = await _create_client(client, "Override Client")
 

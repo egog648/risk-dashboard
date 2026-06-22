@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import type { ClientProfile } from "@/types/clients";
 import type { ClientPortfolioOption } from "@/hooks/useAllClientPortfolios";
@@ -34,6 +35,25 @@ export function PortfolioSelector({
 }: PortfolioSelectorProps) {
   const value = selectionValue(selectedClientId, selectedPortfolioId);
 
+  const optionExists = useMemo(() => {
+    if (!selectedClientId || !selectedPortfolioId) return true;
+    for (const options of grouped.values()) {
+      if (
+        options.some(
+          (option) =>
+            option.clientId === selectedClientId &&
+            option.portfolioId === selectedPortfolioId
+        )
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }, [grouped, selectedClientId, selectedPortfolioId]);
+
+  const selectValue =
+    selectedClientId && selectedPortfolioId ? value : "";
+
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const next = event.target.value;
     if (!next) {
@@ -51,12 +71,19 @@ export function PortfolioSelector({
       </label>
       <select
         id="portfolio-selector"
-        value={value}
+        value={selectValue}
         onChange={handleChange}
         disabled={listLoading}
         className="w-full rounded-lg border border-ff-border bg-white px-3 py-2 text-sm text-ff-navy focus:outline-none focus:ring-2 focus:ring-ff-navy/20 disabled:opacity-60"
       >
         <option value="">Manual / no portfolio</option>
+        {value && !optionExists && (
+          <option value={value}>
+            {clientName && portfolioName
+              ? `${clientName} · ${portfolioName}`
+              : "Loading portfolio…"}
+          </option>
+        )}
         {Array.from(grouped.entries()).map(([groupName, options]) => (
           <optgroup key={groupName} label={groupName}>
             {options.map((option) => (

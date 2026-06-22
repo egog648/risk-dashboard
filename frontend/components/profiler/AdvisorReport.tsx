@@ -1,11 +1,16 @@
 "use client";
 
 import type { AdvisorReport as AdvisorReportData } from "@/lib/profiler/report";
+import type { IncomeAdequacyResult, StressScenarioResult } from "@/types/portfolio";
+import { IncomeAdequacyPanel } from "./IncomeAdequacyPanel";
 import { MarketCallouts } from "./MarketCallouts";
 import { VehicleSuggestions } from "./VehicleSuggestions";
+import { StressPanel } from "@/components/portfolio/StressPanel";
 
 interface AdvisorReportProps {
   report: AdvisorReportData | null;
+  incomeAdequacy?: IncomeAdequacyResult | null;
+  stressScenarios?: StressScenarioResult[];
 }
 
 function BarRow({ label, value, color }: { label: string; value: number; color: string }) {
@@ -24,7 +29,7 @@ function BarRow({ label, value, color }: { label: string; value: number; color: 
   );
 }
 
-export function AdvisorReport({ report }: AdvisorReportProps) {
+export function AdvisorReport({ report, incomeAdequacy, stressScenarios }: AdvisorReportProps) {
   if (!report) {
     return (
       <div className="bg-white rounded-[14px] p-5 border border-ff-border shadow-[0_2px_12px_rgba(26,58,92,0.08)]">
@@ -90,6 +95,21 @@ export function AdvisorReport({ report }: AdvisorReportProps) {
       </div>
 
       <MarketCallouts sleeveAllocation={sleeve} safetyPct={report.sPct} />
+
+      {incomeAdequacy && (
+        <div className="mb-4">
+          <IncomeAdequacyPanel income={incomeAdequacy} />
+        </div>
+      )}
+
+      {stressScenarios && stressScenarios.length > 0 && (
+        <div className="mb-4">
+          <div className="text-xs font-bold text-ff-navy uppercase tracking-wide mb-1.5 border-b border-[#e8edf2] pb-1">
+            Stress Scenarios
+          </div>
+          <StressPanel scenarios={stressScenarios} compact />
+        </div>
+      )}
 
       {sleeve.stocks > 0 && (
         <div className="mb-4">

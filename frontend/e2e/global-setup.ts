@@ -5,12 +5,16 @@ import path from "path";
 const backendDir = path.join(__dirname, "..", "..", "backend");
 const frontendDir = path.join(__dirname, "..");
 const dataDir = path.join(backendDir, "data");
+const e2eDbFile = path.join(dataDir, "e2e_test.db");
 const backendPort = process.env.E2E_BACKEND_PORT || "8000";
 const backendOrigin = `http://127.0.0.1:${backendPort}`;
 const envLocalPath = path.join(frontendDir, ".env.local");
 
 function resolveDatabaseUrl(): string {
-  return process.env.DATABASE_URL || "sqlite:///./data/e2e_test.db";
+  return (
+    process.env.DATABASE_URL ||
+    `sqlite:///${e2eDbFile.replace(/\\/g, "/")}`
+  );
 }
 
 export default async function globalSetup() {

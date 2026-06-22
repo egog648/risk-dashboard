@@ -104,6 +104,9 @@ class Portfolio(Base):
     client_id: Mapped[int] = mapped_column(ForeignKey("clients.id", ondelete="CASCADE"), index=True)
     name: Mapped[str] = mapped_column(String(256))
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    portfolio_value_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
+    annual_income_need_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
+    annual_income_need_pct: Mapped[float | None] = mapped_column(Float, nullable=True)
     profile_override_id: Mapped[int | None] = mapped_column(
         ForeignKey("client_profiles.id", ondelete="SET NULL"), nullable=True
     )

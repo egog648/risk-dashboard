@@ -3,7 +3,10 @@
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useEfficientFrontier } from "@/hooks/useEfficientFrontier";
+import { usePortfolioAnalytics } from "@/hooks/usePortfolioAnalytics";
+import { useBackendHealth, isBackendStale } from "@/hooks/useBackendHealth";
 import { fetchEfficientFrontier } from "@/lib/api/portfolio";
+import { formatConstraintSummary } from "@/lib/profiler/constraints";
 import { useAllClientPortfolios } from "@/hooks/useAllClientPortfolios";
 import { useSelectedPortfolioLoadout } from "@/hooks/useSelectedPortfolioLoadout";
 import { AllocationSliders } from "@/components/portfolio/AllocationSliders";
@@ -13,6 +16,7 @@ import {
 } from "@/components/portfolio/FrontierControls";
 import { FrontierDetailToggle } from "@/components/portfolio/FrontierDetailToggle";
 import { PortfolioSelector } from "@/components/portfolio/PortfolioSelector";
+import { StressPanel } from "@/components/portfolio/StressPanel";
 import { EfficientFrontierChart } from "@/components/dashboard/lazyDashboard";
 import { CorrelationHeatmap } from "@/components/charts/CorrelationHeatmap";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
@@ -79,6 +83,8 @@ function PortfolioPageContent() {
 
   const { grouped, isLoading: listLoading } = useAllClientPortfolios();
   const loadout = useSelectedPortfolioLoadout();
+  const { data: backendHealth } = useBackendHealth();
+  const backendStale = isBackendStale(backendHealth);
 
   const data = mutationData ?? prefillData;
   const isPending = isMutationPending || isPrefillPending || loadout.isLoading;
@@ -97,9 +103,11 @@ function PortfolioPageContent() {
         weights: nextWeights,
         suggestedWeights,
         highDetail: highDetailMode,
+        constraints: loadout.constraints,
+        profileId: loadout.effectiveProfile?.id,
       });
     },
-    [highDetail, mutate]
+    [highDetail, loadout.constraints, loadout.effectiveProfile?.id, mutate]
   );
 
   useEffect(() => {
@@ -209,6 +217,14 @@ function PortfolioPageContent() {
     ? `${loadout.effectiveProfile.risk_label} (${loadout.effectiveProfile.governed_aggression_pct}%)`
     : undefined;
 
+  const { data: analytics, isLoading: analyticsLoading, isError: analyticsError } =
+    usePortfolioAnalytics({
+      weights,
+      effectiveProfile: loadout.effectiveProfile,
+      portfolio: loadout.portfolio,
+      enabled: Boolean(data),
+    });
+
   return (
     <div className="space-y-8">
       <div>
@@ -217,6 +233,13 @@ function PortfolioPageContent() {
           Adjust allocation weights and explore the efficient frontier using
           fundamental-based expected returns
         </p>
+        {backendStale && (
+          <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+            Backend is running an older build without analytics support. Restart the API
+            server (`python -m uvicorn app.main:app --reload` from `backend/`) to load stress
+            scenarios and suggested portfolio metrics.
+          </p>
+        )}
         {prefilled && prefillBanner && (
           <p className="text-xs text-ff-green mt-1 font-semibold">{prefillBanner}</p>
         )}
@@ -233,6 +256,13 @@ function PortfolioPageContent() {
         effectiveProfile={loadout.effectiveProfile}
         onSelect={handlePortfolioSelect}
       />
+
+      {loadout.constraints && (
+        <p className="text-xs text-ff-navy bg-[#eaf1f8] border border-ff-border rounded-lg px-3 py-2">
+          <span className="font-semibold">Governor constraints: </span>
+          {formatConstraintSummary(loadout.constraints)}
+        </p>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <FinesseCard title="Portfolio Weights" padding="lg" className="xl:col-span-1">
@@ -271,12 +301,35 @@ function PortfolioPageContent() {
                 selected={selectedPortfolio}
                 onSelect={setSelectedPortfolio}
                 onApplyOptimized={handleApplyOptimized}
+                constraintWarnings={data.constraint_warnings}
+                maxPortfolioVol={data.constraints_applied?.max_portfolio_vol}
               />
               <EfficientFrontierChart data={data} />
             </>
           )}
         </FinesseCard>
       </div>
+
+      {data && (
+        <FinesseCard title="Stress Scenarios" padding="lg">
+          {analyticsLoading && (
+            <p className="text-sm text-ff-muted">Loading stress scenarios...</p>
+          )}
+          {analyticsError && (
+            <p className="text-sm text-red-500">
+              {backendStale
+                ? "Stress scenarios require a backend restart to load the analytics endpoint."
+                : "Failed to load stress scenarios. Ensure the backend is running and data is seeded."}
+            </p>
+          )}
+          {!analyticsLoading && !analyticsError && analytics && (
+            <StressPanel
+              scenarios={analytics.stress}
+              tolerancePct={analytics.stress[0]?.tolerance_pct}
+            />
+          )}
+        </FinesseCard>
+      )}
 
       {data?.correlation_matrix && (
         <FinesseCard title="Correlation Matrix" padding="lg">

@@ -27,6 +27,8 @@ interface FrontierControlsProps {
   selected: SelectedPortfolio | null;
   onSelect: (id: SelectedPortfolio | null) => void;
   onApplyOptimized?: (point: FrontierPoint) => void;
+  constraintWarnings?: string[];
+  maxPortfolioVol?: number | null;
 }
 
 /**
@@ -43,6 +45,8 @@ export function FrontierControls({
   selected,
   onSelect,
   onApplyOptimized,
+  constraintWarnings = [],
+  maxPortfolioVol,
 }: FrontierControlsProps) {
   const portfolios: PortfolioCard[] = [
     { id: "max_sharpe", label: "Max Sharpe", color: "#22c55e", data: maxSharpe },
@@ -81,6 +85,15 @@ export function FrontierControls({
 
   return (
     <div className="mb-4">
+      {constraintWarnings.length > 0 && (
+        <div className="mb-3 space-y-1">
+          {constraintWarnings.map((warning) => (
+            <p key={warning} className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+              {warning}
+            </p>
+          ))}
+        </div>
+      )}
       <div className={gridClass}>
         {portfolios.map(({ id, label, subtitle, color, data }) => {
           const isSelected = selected === id;
@@ -126,7 +139,13 @@ export function FrontierControls({
                     </div>
                     <div className="flex justify-between">
                       <span className="text-ff-muted">Volatility</span>
-                      <span className="text-ff-navy font-mono">
+                      <span
+                        className={`font-mono ${
+                          maxPortfolioVol != null && data.volatility > maxPortfolioVol + 1e-6
+                            ? "text-red-600"
+                            : "text-ff-navy"
+                        }`}
+                      >
                         {fmtPct(data.volatility)}
                       </span>
                     </div>
@@ -139,7 +158,11 @@ export function FrontierControls({
                 </>
               ) : (
                 <div className="text-ff-muted text-xs">
-                  {id === "suggested" ? "Profile incomplete" : "Not available"}
+                  {id === "suggested"
+                    ? showSuggested && subtitle
+                      ? "Restart backend and re-run optimizer"
+                      : "Profile incomplete"
+                    : "Not available"}
                 </div>
               )}
             </button>

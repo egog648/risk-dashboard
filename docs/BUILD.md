@@ -84,7 +84,8 @@ start http://localhost:3000
 | `GET /api/v1/hard-assets/reits` | REITs |
 | `GET /api/v1/hard-assets/commodities` | Broad commodities |
 | `GET /api/v1/cash/all?include_history=false` | Cash / money market |
-| `POST /api/v1/portfolio/frontier?high_detail=false` | Efficient frontier (body: `FrontierComputeRequest`) |
+| `POST /api/v1/portfolio/frontier?high_detail=false&profile_id=` | Efficient frontier (body: `FrontierComputeRequest` with optional `constraints`) |
+| `POST /api/v1/portfolio/analytics` | Income adequacy + stress scenarios (body: `PortfolioAnalyticsRequest`) |
 | `GET /api/v1/data-status` | Data freshness status |
 | `POST /api/v1/data-status/refresh` | Manual data refresh |
 | `GET /health` | Health check |
@@ -133,7 +134,7 @@ Full Swagger UI: http://localhost:8000/docs
 | 14 | 2 | Client workspace | `14_CLIENT_WORKSPACE.md` | Done |
 | 15 | 2 | Advisor report + market callouts | `15_ADVISOR_REPORT.md` | Done |
 | 16 | 2 | Vehicle recommendations | `16_VEHICLE_RECOMMENDATIONS.md` | Done |
-| 17 | 2 | Advanced analytics | `17_ADVANCED_ANALYTICS.md` | Deferred |
+| 17 | 2 | Advanced analytics | `17_ADVANCED_ANALYTICS.md` | Done |
 
 ## Quick Start (after Module 16)
 

@@ -1,6 +1,15 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import cash, clients, credit, data_status, equities, hard_assets, portfolio, tickers
+from app.api.v1.endpoints import (
+    cash,
+    clients,
+    credit,
+    data_status,
+    equities,
+    hard_assets,
+    portfolio,
+    tickers,
+)
 
 api_router = APIRouter()
 

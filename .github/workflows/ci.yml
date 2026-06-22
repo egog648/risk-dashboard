@@ -87,7 +87,6 @@ jobs:
     env:
       FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
       TIINGO_API_KEY: ${{ secrets.TIINGO_API_KEY }}
-      DATABASE_URL: "sqlite:///./data/e2e_test.db"
       NEXT_PUBLIC_API_URL: "http://127.0.0.1:8000"
       CI: true
     steps:
@@ -121,6 +120,8 @@ jobs:
 
       - name: Run Playwright e2e
         working-directory: frontend
+        env:
+          DATABASE_URL: sqlite:////${{ github.workspace }}/backend/data/e2e_test.db
         run: npm run test:e2e
 
       - name: Upload Playwright report

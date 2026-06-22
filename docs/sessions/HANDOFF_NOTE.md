@@ -326,3 +326,21 @@ E2e in CI — see handoff note below (completed 2026-06-21).
 
 ## Next single priority
 Module 17 Advanced Analytics (deferred) or low-priority gaps #8, #15, #16.
+
+---
+
+# Handoff Note — Module 17 Advanced Analytics
+
+## Completed
+- Governor-aware frontier: `constraints.py`, `OptimizationConstraintsPayload` on `/portfolio/frontier`, min cash + max vol in `efficient_frontier.py`, UI badge and warnings.
+- Income adequacy: portfolio metadata fields, `income_analysis.py`, `POST /portfolio/analytics`, `IncomeAdequacyPanel`, portfolio detail edit form.
+- Stress scenarios: `stress.py` (GFC, COVID, rate shock), Q6 tolerance mapping, `StressPanel` on optimizer and advisor report.
+- Tests: `test_constraints.py`, `test_frontier_constraints.py`, `test_income_analysis.py`, `test_stress.py`, `test_portfolio_income_metadata_update`.
+- Docs: `17_ADVANCED_ANALYTICS.md`, `BUILD.md`, `METHODOLOGY.md` §7a–7b, `ROADMAP.md` Module 17 done.
+
+## Validation record (2026-06-21)
+- **Backend pytest:** `pytest tests/` → **72 passed**
+- **Frontend vitest:** `npm run test` → **47 passed**
+
+## Next single priority
+Low-priority gaps #8 (registry tickers on frontier), #15 (`datetime.utcnow`), #16 (React Query staleTime).

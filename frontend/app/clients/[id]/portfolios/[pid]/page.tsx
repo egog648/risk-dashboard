@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FinesseHeader } from "@/components/finesse/FinesseHeader";
 import { FinesseCard } from "@/components/finesse/FinesseCard";
 import { ObjectiveBar, OBJECTIVE_COLORS } from "@/components/finesse/ObjectiveBar";
@@ -16,11 +16,14 @@ import {
   useProfiles,
   useSavePortfolioProfile,
   useUpdateOutlineStatus,
+  useUpdatePortfolio,
 } from "@/hooks/useClients";
+import { usePortfolioAnalytics } from "@/hooks/usePortfolioAnalytics";
+import { mapProfileToPortfolioWeights } from "@/lib/profiler/mapProfileToPortfolioWeights";
 import { useTickers } from "@/hooks/useTickers";
 import { buildProfilePayload } from "@/lib/profiler/buildProfilePayload";
 import { lettersToAnswers, type ProfilerAnswers } from "@/lib/profiler/questions";
-import { WEIGHT_LABELS } from "@/types/portfolio";
+import { WEIGHT_LABELS, DEFAULT_WEIGHTS } from "@/types/portfolio";
 import type { OutlineStatus } from "@/types/clients";
 
 export default function PortfolioDetailPage() {
@@ -33,6 +36,7 @@ export default function PortfolioDetailPage() {
   const { data: profiles } = useProfiles(clientId);
   const { data: outlines } = useOutlines(clientId, portfolioId);
   const savePortfolioProfile = useSavePortfolioProfile(clientId, portfolioId);
+  const updatePortfolioMeta = useUpdatePortfolio(clientId, portfolioId);
   const generateOutline = useGenerateOutline(clientId, portfolioId);
   const updateStatus = useUpdateOutlineStatus(clientId, portfolioId);
   const { data: customTickers } = useTickers();
@@ -41,9 +45,23 @@ export default function PortfolioDetailPage() {
   const [answers, setAnswers] = useState<ProfilerAnswers>({});
   const [saveStatus, setSaveStatus] = useState("");
   const [saveError, setSaveError] = useState(false);
+  const [portfolioValue, setPortfolioValue] = useState("");
+  const [incomeNeedMode, setIncomeNeedMode] = useState<"usd" | "pct">("usd");
+  const [incomeNeedValue, setIncomeNeedValue] = useState("");
+  const [metaStatus, setMetaStatus] = useState("");
 
   const effectiveProfile = profiles?.find((p) => p.id === portfolio?.effective_profile_id);
   const latestOutline = outlines?.[0];
+  const analyticsWeights = latestOutline?.weights ?? (
+    effectiveProfile ? mapProfileToPortfolioWeights(effectiveProfile) : null
+  );
+
+  const { data: analytics } = usePortfolioAnalytics({
+    weights: analyticsWeights ?? DEFAULT_WEIGHTS,
+    effectiveProfile,
+    portfolio,
+    enabled: Boolean(analyticsWeights && effectiveProfile),
+  });
 
   const handleSaveOverride = async () => {
     const payload = buildProfilePayload(answers);
@@ -75,6 +93,39 @@ export default function PortfolioDetailPage() {
     await updateStatus.mutateAsync({ outlineId, status });
   };
 
+  useEffect(() => {
+    if (!portfolio) return;
+    setPortfolioValue(
+      portfolio.portfolio_value_usd != null ? String(portfolio.portfolio_value_usd) : ""
+    );
+    if (portfolio.annual_income_need_pct != null) {
+      setIncomeNeedMode("pct");
+      setIncomeNeedValue(String(portfolio.annual_income_need_pct));
+    } else {
+      setIncomeNeedMode("usd");
+      setIncomeNeedValue(
+        portfolio.annual_income_need_usd != null
+          ? String(portfolio.annual_income_need_usd)
+          : ""
+      );
+    }
+  }, [portfolio]);
+
+  const handleSaveIncomeMeta = async () => {
+    const value = portfolioValue.trim() ? Number(portfolioValue) : null;
+    const need = incomeNeedValue.trim() ? Number(incomeNeedValue) : null;
+    try {
+      await updatePortfolioMeta.mutateAsync({
+        portfolio_value_usd: value,
+        annual_income_need_usd: incomeNeedMode === "usd" ? need : null,
+        annual_income_need_pct: incomeNeedMode === "pct" ? need : null,
+      });
+      setMetaStatus("Income planning fields saved.");
+    } catch {
+      setMetaStatus("Failed to save income planning fields.");
+    }
+  };
+
   if (!client || !portfolio) {
     return <p className="text-sm text-ff-muted">Loading portfolio...</p>;
   }
@@ -89,6 +140,60 @@ export default function PortfolioDetailPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <FinesseCard title="Income Planning" padding="lg">
+          <div className="space-y-3 text-sm">
+            <label className="block">
+              <span className="text-ff-muted text-xs">Portfolio value (USD)</span>
+              <input
+                type="number"
+                min={0}
+                value={portfolioValue}
+                onChange={(e) => setPortfolioValue(e.target.value)}
+                className="mt-1 w-full border border-ff-border rounded-lg px-3 py-2"
+                placeholder="1000000"
+              />
+            </label>
+            <div>
+              <span className="text-ff-muted text-xs">Annual income need</span>
+              <div className="flex gap-2 mt-1">
+                <select
+                  value={incomeNeedMode}
+                  onChange={(e) => setIncomeNeedMode(e.target.value as "usd" | "pct")}
+                  className="border border-ff-border rounded-lg px-2 py-2 text-sm"
+                >
+                  <option value="usd">$ per year</option>
+                  <option value="pct">% of portfolio</option>
+                </select>
+                <input
+                  type="number"
+                  min={0}
+                  value={incomeNeedValue}
+                  onChange={(e) => setIncomeNeedValue(e.target.value)}
+                  className="flex-1 border border-ff-border rounded-lg px-3 py-2"
+                  placeholder={incomeNeedMode === "usd" ? "40000" : "4"}
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleSaveIncomeMeta}
+              disabled={updatePortfolioMeta.isPending}
+              className="px-4 py-2 bg-ff-navy text-white text-sm font-semibold rounded-lg hover:bg-[#254d73] disabled:opacity-50"
+            >
+              {updatePortfolioMeta.isPending ? "Saving..." : "Save Income Planning"}
+            </button>
+            {metaStatus && <p className="text-xs text-ff-muted">{metaStatus}</p>}
+            {analytics?.income && analytics.income.status !== "unknown" && (
+              <p className="text-xs text-ff-text-secondary">
+                Est. yield {(analytics.income.portfolio_yield * 100).toFixed(2)}% → gap{" "}
+                {analytics.income.gap_usd != null
+                  ? `$${analytics.income.gap_usd.toLocaleString()}`
+                  : "—"}
+              </p>
+            )}
+          </div>
+        </FinesseCard>
+
         <FinesseCard title="Effective Profile" padding="lg">
           {effectiveProfile ? (
             <div className="space-y-2 text-sm">

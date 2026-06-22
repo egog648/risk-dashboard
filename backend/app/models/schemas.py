@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
@@ -82,9 +82,15 @@ class FrontierPoint(BaseModel):
     weights: dict[str, float]
 
 
+class OptimizationConstraintsPayload(BaseModel):
+    min_cash: float | None = None
+    max_portfolio_vol: float | None = None
+
+
 class FrontierComputeRequest(BaseModel):
     weights: PortfolioWeights
     suggested_weights: PortfolioWeights | None = None
+    constraints: OptimizationConstraintsPayload | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -101,12 +107,60 @@ class FrontierComputeRequest(BaseModel):
 
 class EfficientFrontierResponse(BaseModel):
     frontier: list[FrontierPoint]           # Frontier curve points
-    max_sharpe: FrontierPoint               # Max Sharpe portfolio
-    min_vol: FrontierPoint                  # Min volatility portfolio
+    max_sharpe: FrontierPoint | None = None  # Max Sharpe portfolio
+    min_vol: FrontierPoint | None = None     # Min volatility portfolio
     current: FrontierPoint                  # Current allocation
     monte_carlo: list[FrontierPoint]        # 2000 random portfolios
     correlation_matrix: dict[str, dict[str, float]]
     suggested: FrontierPoint | None = None
+    constraints_applied: OptimizationConstraintsPayload | None = None
+    constraint_warnings: list[str] = Field(default_factory=list)
+
+
+class IncomeAdequacyResult(BaseModel):
+    portfolio_yield: float
+    annual_income_estimate: float | None = None
+    annual_income_need: float | None = None
+    gap_usd: float | None = None
+    gap_pct: float | None = None
+    status: Literal["adequate", "shortfall", "unknown"]
+
+
+class StressScenarioResult(BaseModel):
+    id: str
+    label: str
+    start: date
+    end: date
+    portfolio_drawdown: float
+    exceeds_tolerance: bool
+    tolerance_pct: float
+
+
+class PortfolioAnalyticsRequest(BaseModel):
+    weights: PortfolioWeights
+    profile_id: int | None = None
+    answers: dict[str, str] | None = None
+    governor_cap_pct: float | None = None
+    portfolio_value_usd: float | None = None
+    annual_income_need_usd: float | None = None
+    annual_income_need_pct: float | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_legacy_flat_weights(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        if "weights" in data:
+            return data
+        if "equities_large" in data or "cash" in data:
+            return {"weights": data}
+        return data
+
+
+class PortfolioAnalyticsResponse(BaseModel):
+    income: IncomeAdequacyResult | None = None
+    stress: list[StressScenarioResult] = Field(default_factory=list)
+    constraints_applied: OptimizationConstraintsPayload | None = None
 
 
 # --- Yield curve ---
@@ -296,6 +350,9 @@ class PortfolioCreate(BaseModel):
 class PortfolioUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=256)
     notes: str | None = None
+    portfolio_value_usd: float | None = Field(None, ge=0)
+    annual_income_need_usd: float | None = Field(None, ge=0)
+    annual_income_need_pct: float | None = Field(None, ge=0, le=100)
 
 
 class PortfolioResponse(BaseModel):
@@ -305,6 +362,9 @@ class PortfolioResponse(BaseModel):
     notes: str | None
     profile_override_id: int | None
     effective_profile_id: int | None = None
+    portfolio_value_usd: float | None = None
+    annual_income_need_usd: float | None = None
+    annual_income_need_pct: float | None = None
     created_at: datetime
     updated_at: datetime
 

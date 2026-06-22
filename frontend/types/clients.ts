@@ -53,6 +53,9 @@ export interface Portfolio {
   notes: string | null;
   profile_override_id: number | null;
   effective_profile_id: number | null;
+  portfolio_value_usd: number | null;
+  annual_income_need_usd: number | null;
+  annual_income_need_pct: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -60,6 +63,14 @@ export interface Portfolio {
 export interface PortfolioCreate {
   name: string;
   notes?: string | null;
+}
+
+export interface PortfolioUpdate {
+  name?: string;
+  notes?: string | null;
+  portfolio_value_usd?: number | null;
+  annual_income_need_usd?: number | null;
+  annual_income_need_pct?: number | null;
 }
 
 export interface SleeveAllocation {

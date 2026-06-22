@@ -9,9 +9,10 @@ import {
   useProfiles,
 } from "@/hooks/useClients";
 import { mapProfileToPortfolioWeights } from "@/lib/profiler/mapProfileToPortfolioWeights";
+import { constraintsFromProfile } from "@/lib/profiler/constraints";
 import { DEFAULT_WEIGHTS } from "@/types/portfolio";
 import type { ClientProfile } from "@/types/clients";
-import type { PortfolioWeights } from "@/types/portfolio";
+import type { OptimizationConstraintsPayload, PortfolioWeights } from "@/types/portfolio";
 
 export function useSelectedPortfolioLoadout() {
   const searchParams = useSearchParams();
@@ -39,6 +40,11 @@ export function useSelectedPortfolioLoadout() {
 
   const suggestedWeights = useMemo(
     () => (effectiveProfile ? mapProfileToPortfolioWeights(effectiveProfile) : null),
+    [effectiveProfile]
+  );
+
+  const constraints = useMemo<OptimizationConstraintsPayload | null>(
+    () => (effectiveProfile ? constraintsFromProfile(effectiveProfile) : null),
     [effectiveProfile]
   );
 
@@ -81,6 +87,7 @@ export function useSelectedPortfolioLoadout() {
     portfolio: hasSelection ? portfolio : undefined,
     effectiveProfile,
     suggestedWeights,
+    constraints,
     sliderWeights,
     loadedFromOutline,
     isLoading,

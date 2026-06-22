@@ -96,3 +96,27 @@ assumptions:
     fallback: 100
     source: "Fallback IG OAS spread (basis points) when BAMLC0A0CM unavailable"
     effective_date: "2026-06-21"
+
+  income_yield_credit_ig:
+    value: 0.045
+    fallback: 0.045
+    source: "Approximate IG corporate coupon yield for income adequacy; LQD proxy"
+    effective_date: "2026-06-21"
+
+  income_yield_credit_hy:
+    value: 0.065
+    fallback: 0.065
+    source: "Approximate HY coupon yield for income adequacy; HYG proxy"
+    effective_date: "2026-06-21"
+
+  income_yield_gold:
+    value: 0.0
+    fallback: 0.0
+    source: "Gold produces no income yield"
+    effective_date: "2026-06-21"
+
+  income_yield_commodities:
+    value: 0.0
+    fallback: 0.0
+    source: "Broad commodities produce no income yield"
+    effective_date: "2026-06-21"

@@ -14,8 +14,9 @@ import {
   saveClientProfile,
   savePortfolioProfile,
   updateOutlineStatus,
+  updatePortfolio,
 } from "@/lib/api/clients";
-import type { ClientCreate, ClientProfileCreate, PortfolioCreate } from "@/types/clients";
+import type { ClientCreate, ClientProfileCreate, PortfolioCreate, PortfolioUpdate } from "@/types/clients";
 
 export function useClients() {
   return useQuery({
@@ -100,6 +101,21 @@ export function usePortfolio(clientId: number, portfolioId: number) {
     queryKey: ["clients", clientId, "portfolios", portfolioId],
     queryFn: () => fetchPortfolio(clientId, portfolioId),
     enabled: clientId > 0 && portfolioId > 0,
+  });
+}
+
+export function useUpdatePortfolio(clientId: number, portfolioId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: PortfolioUpdate) =>
+      updatePortfolio(clientId, portfolioId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["clients", clientId, "portfolios", portfolioId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["clients", clientId, "portfolios"] });
+      queryClient.invalidateQueries({ queryKey: ["portfolioAnalytics"] });
+    },
   });
 }
 
