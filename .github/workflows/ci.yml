@@ -116,6 +116,9 @@ jobs:
         working-directory: frontend
         run: npx playwright install --with-deps chromium
 
+      - name: Prepare e2e database directory
+        run: mkdir -p backend/data
+
       - name: Run Playwright e2e
         working-directory: frontend
         run: npm run test:e2e

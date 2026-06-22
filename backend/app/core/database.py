@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -23,6 +25,21 @@ def get_db():
         db.close()
 
 
+def _ensure_sqlite_directory() -> None:
+    """Create parent directory for SQLite file paths (e.g. ./data/*.db)."""
+    if not settings.DATABASE_URL.startswith("sqlite"):
+        return
+
+    db_path = settings.DATABASE_URL.removeprefix("sqlite:///")
+    if db_path == ":memory:":
+        return
+
+    resolved = Path(db_path)
+    if not resolved.is_absolute():
+        resolved = Path.cwd() / resolved
+    resolved.parent.mkdir(parents=True, exist_ok=True)
+
+
 def _migrate_client_workspace_schema() -> None:
     """Lightweight schema patches for SQLite dev databases without Alembic."""
     from sqlalchemy import inspect, text
@@ -43,6 +60,7 @@ def _migrate_client_workspace_schema() -> None:
 
 
 def init_db():
+    _ensure_sqlite_directory()
     from app.models import db_models  # noqa: F401 — ensures models are registered
     Base.metadata.create_all(bind=engine)
     _migrate_client_workspace_schema()
