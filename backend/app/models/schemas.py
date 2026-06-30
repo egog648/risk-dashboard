@@ -399,3 +399,130 @@ class PortfolioOutlineResponse(BaseModel):
 
 class PortfolioOutlineStatusUpdate(BaseModel):
     status: OutlineStatus
+
+
+# --- De-Risk Analyzer ---
+
+TaxTreatment = Literal[
+    "taxable_individual",
+    "taxable_trust",
+    "traditional_ira",
+    "roth_ira",
+    "401k",
+]
+TierMode = Literal["tax_budget", "beta_target"]
+
+
+class DeriskAssumptionsUpdate(BaseModel):
+    tax_treatment: TaxTreatment | None = None
+    tier_mode: TierMode | None = None
+    fed_ltcg: float | None = None
+    fed_stcg: float | None = None
+    niit: float | None = None
+    state_rate: float | None = None
+    dd1: float | None = None
+    dd2: float | None = None
+    dd3: float | None = None
+    dist_rate: float | None = None
+    beta_floor: float | None = None
+    beta_method: str | None = None
+    tax_budgets: list[float] | None = None
+    beta_targets: list[float] | None = None
+
+
+class DeriskAssumptionsResponse(BaseModel):
+    id: int
+    portfolio_id: int
+    tax_treatment: str
+    tier_mode: str
+    fed_ltcg: float
+    fed_stcg: float
+    niit: float
+    state_rate: float
+    dd1: float
+    dd2: float
+    dd3: float
+    dist_rate: float
+    beta_floor: float
+    beta_method: str
+    tax_budgets: list[float]
+    beta_targets: list[float]
+    lt_rate: float
+    st_rate: float
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class LotResponse(BaseModel):
+    id: int
+    ticker: str
+    name: str
+    section: str
+    trade_date: str | None
+    holding_period: str
+    quantity: float
+    market_value: float
+    total_cost: float
+    unrealized_gl: float
+    stress_beta: float
+    raw_beta: float | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class HoldingsSnapshotResponse(BaseModel):
+    id: int
+    portfolio_id: int
+    statement_date: str | None
+    source: str
+    total_value: float
+    cash_value: float
+    lot_count: int
+    created_at: datetime
+    lots: list[LotResponse] = Field(default_factory=list)
+
+    model_config = {"from_attributes": True}
+
+
+class DeRiskClientPortfolioOption(BaseModel):
+    client_id: int
+    client_name: str
+    portfolio_id: int
+    portfolio_name: str
+    has_holdings: bool
+    latest_run_id: int | None = None
+
+
+class DeriskAnalysisRunResponse(BaseModel):
+    id: int
+    portfolio_id: int
+    snapshot_id: int
+    assumptions_id: int
+    beta_before: float
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class DeriskTiersResponse(BaseModel):
+    run_id: int
+    hold_all: dict[str, Any]
+    tiers: list[dict[str, Any]]
+    tier_mode: str = "tax_budget"
+
+
+class DeriskSellListResponse(BaseModel):
+    run_id: int
+    hold_all: dict[str, Any]
+    tier_summary: dict[str, Any]
+    sold_lots: list[dict[str, Any]]
+    incremental_positions: dict[str, Any]
+    tier_mode: str = "tax_budget"
+
+
+class DeriskLotsResponse(BaseModel):
+    run_id: int
+    lots: list[dict[str, Any]]
+    position_ranking: list[dict[str, Any]]
+    portfolio: dict[str, Any]

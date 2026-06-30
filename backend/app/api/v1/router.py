@@ -5,6 +5,7 @@ from app.api.v1.endpoints import (
     clients,
     credit,
     data_status,
+    derisk,
     equities,
     hard_assets,
     portfolio,
@@ -21,3 +22,4 @@ api_router.include_router(portfolio.router, prefix="/portfolio", tags=["Portfoli
 api_router.include_router(data_status.router, prefix="/data-status", tags=["Data Status"])
 api_router.include_router(tickers.router, prefix="/tickers", tags=["Tickers"])
 api_router.include_router(clients.router, prefix="/clients", tags=["Clients"])
+api_router.include_router(derisk.router, prefix="/de-risk", tags=["De-Risk"])

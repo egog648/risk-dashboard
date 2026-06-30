@@ -1,0 +1,76 @@
+{
+ "hold_all": {
+  "total": 11071387.02,
+  "cash": 1714082.08,
+  "beta_incl_cash": 0.7614,
+  "drawdown_loss": {
+   "dd_20": 1685873.75,
+   "dd_30": 2528810.63,
+   "dd_40": 3371747.5
+  },
+  "distribution_5pct": 553569.35,
+  "runway_years": 3.1
+ },
+ "tiers": [
+  {
+   "budget": 250000,
+   "n_lots": 108,
+   "proceeds": 3311268.63,
+   "gross_tax": 249998.08,
+   "net_tax_incl_harvest": 240650.79,
+   "beta_dollars_removed": 2917058.9,
+   "new_total": 10821388.94,
+   "new_cash": 4775352.63,
+   "new_cash_pct": 44.13,
+   "new_equity": 6046036.31,
+   "beta_before": 0.7614,
+   "beta_after": 0.5094,
+   "drawdown_protection": {
+    "dd_20": 583411.78,
+    "dd_30": 875117.67,
+    "dd_40": 1166823.56
+   },
+   "runway_years_after": 8.63
+  },
+  {
+   "budget": 500000,
+   "n_lots": 130,
+   "proceeds": 4595401.88,
+   "gross_tax": 499945.79,
+   "net_tax_incl_harvest": 490598.5,
+   "beta_dollars_removed": 4359076.35,
+   "new_total": 10571441.23,
+   "new_cash": 5809538.17,
+   "new_cash_pct": 54.96,
+   "new_equity": 4761903.06,
+   "beta_before": 0.7614,
+   "beta_after": 0.385,
+   "drawdown_protection": {
+    "dd_20": 871815.27,
+    "dd_30": 1307722.9,
+    "dd_40": 1743630.54
+   },
+   "runway_years_after": 10.49
+  },
+  {
+   "budget": 750000,
+   "n_lots": 158,
+   "proceeds": 5659697.22,
+   "gross_tax": 749928.61,
+   "net_tax_incl_harvest": 740581.32,
+   "beta_dollars_removed": 5531682.79,
+   "new_total": 10321458.41,
+   "new_cash": 6623850.69,
+   "new_cash_pct": 64.18,
+   "new_equity": 3697607.72,
+   "beta_before": 0.7614,
+   "beta_after": 0.2807,
+   "drawdown_protection": {
+    "dd_20": 1106336.56,
+    "dd_30": 1659504.84,
+    "dd_40": 2212673.11
+   },
+   "runway_years_after": 11.97
+  }
+ ]
+}

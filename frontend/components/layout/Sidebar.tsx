@@ -13,6 +13,7 @@ import {
   User,
   ClipboardPen,
   List,
+  ShieldAlert,
 } from "lucide-react";
 import { prefetchRouteData } from "@/lib/prefetch";
 
@@ -35,6 +36,7 @@ const MACRO_NAV: NavItem[] = [
 
 const PRACTICE_NAV: NavItem[] = [
   { href: "/clients", label: "Clients", icon: User },
+  { href: "/de-risk", label: "De-Risk", icon: ShieldAlert },
   { href: "/profiler", label: "Profiler", icon: ClipboardPen },
   { href: "/tickers", label: "Tickers", icon: List },
 ];
@@ -57,7 +59,9 @@ export function Sidebar() {
 
   const linkClass = (href: string) => {
     const isActive =
-      pathname === href || (href === "/profiler" && pathname.startsWith("/profiler"));
+      pathname === href ||
+      (href === "/profiler" && pathname.startsWith("/profiler")) ||
+      (href === "/de-risk" && pathname.startsWith("/de-risk"));
     return `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
       isActive
         ? "bg-[#2a5d8f] text-white"

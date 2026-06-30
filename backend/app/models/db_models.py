@@ -118,6 +118,11 @@ class Portfolio(Base):
     client: Mapped["Client"] = relationship(back_populates="portfolios")
     override_profile: Mapped["ClientProfile | None"] = relationship(foreign_keys=[profile_override_id])
     outlines: Mapped[list["PortfolioOutline"]] = relationship(back_populates="portfolio")
+    holdings_snapshots: Mapped[list["HoldingsSnapshot"]] = relationship(back_populates="portfolio")
+    derisk_assumptions: Mapped["DeriskAssumptions | None"] = relationship(
+        back_populates="portfolio", uselist=False
+    )
+    derisk_runs: Mapped[list["DeriskAnalysisRun"]] = relationship(back_populates="portfolio")
 
 
 class PortfolioOutline(Base):
@@ -141,3 +146,157 @@ class PortfolioOutline(Base):
 
     portfolio: Mapped["Portfolio"] = relationship(back_populates="outlines")
     profile: Mapped["ClientProfile"] = relationship()
+
+
+class HoldingsSnapshot(Base):
+    """Versioned lot-level holdings ingest for de-risk analysis."""
+
+    __tablename__ = "holdings_snapshots"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    portfolio_id: Mapped[int] = mapped_column(
+        ForeignKey("portfolios.id", ondelete="CASCADE"), index=True
+    )
+    statement_date: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    source: Mapped[str] = mapped_column(String(64), default="upload")
+    total_value: Mapped[float] = mapped_column(Float)
+    cash_value: Mapped[float] = mapped_column(Float, default=0.0)
+    positions_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    portfolio: Mapped["Portfolio"] = relationship(back_populates="holdings_snapshots")
+    lots: Mapped[list["Lot"]] = relationship(back_populates="snapshot", cascade="all, delete-orphan")
+    analysis_runs: Mapped[list["DeriskAnalysisRun"]] = relationship(back_populates="snapshot")
+
+
+class Lot(Base):
+    """Tax lot within a holdings snapshot."""
+
+    __tablename__ = "lots"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    snapshot_id: Mapped[int] = mapped_column(
+        ForeignKey("holdings_snapshots.id", ondelete="CASCADE"), index=True
+    )
+    ticker: Mapped[str] = mapped_column(String(16), index=True)
+    name: Mapped[str] = mapped_column(String(256), default="")
+    section: Mapped[str] = mapped_column(String(32), default="STOCKS")
+    trade_date: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    holding_period: Mapped[str] = mapped_column(String(4), default="LT")
+    quantity: Mapped[float] = mapped_column(Float, default=0.0)
+    market_value: Mapped[float] = mapped_column(Float)
+    total_cost: Mapped[float] = mapped_column(Float, default=0.0)
+    unrealized_gl: Mapped[float] = mapped_column(Float, default=0.0)
+    stress_beta: Mapped[float] = mapped_column(Float, default=1.0)
+    raw_beta: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    snapshot: Mapped["HoldingsSnapshot"] = relationship(back_populates="lots")
+
+
+class DeriskAssumptions(Base):
+    """Editable de-risk assumptions per portfolio."""
+
+    __tablename__ = "derisk_assumptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    portfolio_id: Mapped[int] = mapped_column(
+        ForeignKey("portfolios.id", ondelete="CASCADE"), unique=True, index=True
+    )
+    tax_treatment: Mapped[str] = mapped_column(String(32), default="taxable_trust")
+    tier_mode: Mapped[str] = mapped_column(String(16), default="tax_budget")
+    fed_ltcg: Mapped[float] = mapped_column(Float, default=0.20)
+    fed_stcg: Mapped[float] = mapped_column(Float, default=0.37)
+    niit: Mapped[float] = mapped_column(Float, default=0.038)
+    state_rate: Mapped[float] = mapped_column(Float, default=0.044)
+    dd1: Mapped[float] = mapped_column(Float, default=0.20)
+    dd2: Mapped[float] = mapped_column(Float, default=0.30)
+    dd3: Mapped[float] = mapped_column(Float, default=0.40)
+    dist_rate: Mapped[float] = mapped_column(Float, default=0.05)
+    beta_floor: Mapped[float] = mapped_column(Float, default=0.35)
+    beta_method: Mapped[str] = mapped_column(String(32), default="blume")
+    tax_budgets_json: Mapped[str] = mapped_column(Text, default="[250000,500000,750000]")
+    beta_targets_json: Mapped[str] = mapped_column(Text, default="[0.6,0.5,0.4]")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    portfolio: Mapped["Portfolio"] = relationship(back_populates="derisk_assumptions")
+
+
+class DeriskAnalysisRun(Base):
+    """Persisted de-risk analysis execution."""
+
+    __tablename__ = "derisk_analysis_runs"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    portfolio_id: Mapped[int] = mapped_column(
+        ForeignKey("portfolios.id", ondelete="CASCADE"), index=True
+    )
+    snapshot_id: Mapped[int] = mapped_column(
+        ForeignKey("holdings_snapshots.id", ondelete="CASCADE"), index=True
+    )
+    assumptions_id: Mapped[int] = mapped_column(
+        ForeignKey("derisk_assumptions.id", ondelete="CASCADE"), index=True
+    )
+    beta_before: Mapped[float] = mapped_column(Float)
+    tiers_json: Mapped[str] = mapped_column(Text)
+    sell_list_json: Mapped[str] = mapped_column(Text)
+    decision_json: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    portfolio: Mapped["Portfolio"] = relationship(back_populates="derisk_runs")
+    snapshot: Mapped["HoldingsSnapshot"] = relationship(back_populates="analysis_runs")
+    assumptions: Mapped["DeriskAssumptions"] = relationship()
+    sell_tiers: Mapped[list["DeriskSellTier"]] = relationship(
+        back_populates="run", cascade="all, delete-orphan"
+    )
+
+
+class DeriskSellTier(Base):
+    """One tier row in the de-risk menu."""
+
+    __tablename__ = "derisk_sell_tiers"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    run_id: Mapped[int] = mapped_column(
+        ForeignKey("derisk_analysis_runs.id", ondelete="CASCADE"), index=True
+    )
+    tier_label: Mapped[str] = mapped_column(String(64))
+    budget_or_target: Mapped[float] = mapped_column(Float)
+    n_lots: Mapped[int] = mapped_column()
+    proceeds: Mapped[float] = mapped_column(Float)
+    gross_tax: Mapped[float] = mapped_column(Float)
+    net_tax: Mapped[float] = mapped_column(Float)
+    beta_after: Mapped[float] = mapped_column(Float)
+    new_cash_pct: Mapped[float] = mapped_column(Float)
+    runway_after: Mapped[float] = mapped_column(Float)
+    protect_dd20: Mapped[float] = mapped_column(Float)
+    protect_dd30: Mapped[float] = mapped_column(Float)
+    protect_dd40: Mapped[float] = mapped_column(Float)
+    tier_json: Mapped[str] = mapped_column(Text)
+
+    run: Mapped["DeriskAnalysisRun"] = relationship(back_populates="sell_tiers")
+    tier_lots: Mapped[list["DeriskSellTierLot"]] = relationship(
+        back_populates="tier", cascade="all, delete-orphan"
+    )
+
+
+class DeriskSellTierLot(Base):
+    """Lot included in a sell tier."""
+
+    __tablename__ = "derisk_sell_tier_lots"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    tier_id: Mapped[int] = mapped_column(
+        ForeignKey("derisk_sell_tiers.id", ondelete="CASCADE"), index=True
+    )
+    lot_id: Mapped[int | None] = mapped_column(
+        ForeignKey("lots.id", ondelete="SET NULL"), nullable=True
+    )
+    entry_tier: Mapped[float] = mapped_column(Float)
+    beta_dollars_removed: Mapped[float] = mapped_column(Float)
+    tax_to_sell: Mapped[float] = mapped_column(Float)
+    exposure_per_tax_dollar: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lot_json: Mapped[str] = mapped_column(Text)
+
+    tier: Mapped["DeriskSellTier"] = relationship(back_populates="tier_lots")

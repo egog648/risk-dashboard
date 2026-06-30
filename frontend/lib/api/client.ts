@@ -1,4 +1,5 @@
 import axios from "axios";
+import { extractApiError } from "./errors";
 
 function resolveApiBaseUrl(): string {
   const directBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -20,7 +21,11 @@ export const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API error:", error.response?.status, error.response?.data);
+    console.error(
+      "API error:",
+      error.response?.status,
+      extractApiError(error, "(no detail)")
+    );
     return Promise.reject(error);
   }
 );
