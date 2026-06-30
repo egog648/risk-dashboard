@@ -2,6 +2,8 @@
 
 Operational guidance for local and containerized development environments.
 
+**Fast daily launch (agents):** see [LAUNCH.md](LAUNCH.md).
+
 ## Daily Ops Checks
 - `GET /health` should return `{"status":"ok"}`.
 - `GET /api/v1/data-status` should not remain in sustained `error` state.
@@ -102,20 +104,43 @@ Refresh completion logs at INFO (`refresh_run_complete`). WARNING (`refresh_run_
 | `overall_status=error` and >50% series in error | Follow **Escalation Criteria** below |
 | `X-Slow-Request: 1` on warm `/all` calls | Check response cache hit rate; see `PERFORMANCE_BASELINE.md` |
 
+## Docker Launch (Development)
+
+| When | Command |
+|------|---------|
+| First clone / dep change | `docker compose build` |
+| Daily dev | `docker compose up -d` |
+| Launcher (health wait + optional bootstrap) | `.\scripts\docker-up.ps1` or `./scripts/docker-up.sh` |
+| Rebuild + start | `docker compose build && docker compose up -d` |
+
+Enable BuildKit for faster rebuilds: `DOCKER_BUILDKIT=1` and `COMPOSE_DOCKER_CLI_BUILD=1`.
+
+Makefile shortcuts: `make build`, `make up`, `make up-build`, `make bootstrap`.
+
+**Do not** use `docker compose up --build` on every daily launch — that forces unnecessary rebuilds.
+
 ## Production Compose Startup
 
 Use production Dockerfile stages without dev bind mounts:
 
 ```bash
-docker compose -f docker-compose.prod.yml up --build
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 Then run the same bootstrap sequence as development (steps 2–6 below), substituting the prod compose command where relevant.
 
+## Troubleshooting: Slow Docker on Windows
+
+- Build once (`docker compose build`), then launch with `docker compose up -d` only.
+- Enable BuildKit (see Docker Launch section above).
+- First build takes several minutes; warm launches should be under ~1 minute to healthy backend.
+- If Docker Desktop hangs on image pull or `apt-get`, stop the stack and retry, or use local fallback: `python -m uvicorn app.main:app --reload` (backend) + `npm run dev` (frontend).
+
 ## First-Run Bootstrap Validation (Deterministic)
 Use this exact sequence on a fresh environment:
-1. Start services: `docker-compose up --build` (dev) or `docker compose -f docker-compose.prod.yml up --build` (prod).
-2. Wait for backend health: `GET /health` is `{"status":"ok"}`.
+1. Build (if needed): `docker compose build`, then start: `docker compose up -d` (dev) or prod compose equivalent. Or: `scripts/docker-up.ps1 -Bootstrap`.
+2. Wait for backend health: `GET /health` is `{"status":"ok"}` (compose healthcheck gates frontend start).
 3. Trigger refresh: `POST /api/v1/data-status/refresh`.
 4. Poll readiness: `GET /api/v1/data-status` until `overall_status` is not `error`.
 5. Run smoke checks:
@@ -139,7 +164,7 @@ Use this exact sequence on a fresh environment:
 
 ### Recovery
 1. Update `backend/.env` with valid keys.
-2. Restart services (`docker-compose up --build` or restart backend process).
+2. Restart services (`docker compose up -d` or `docker compose restart backend`; rebuild only if deps changed).
 3. Trigger refresh: `POST /api/v1/data-status/refresh`.
 4. Verify `GET /api/v1/data-status` improves to `ok`/`stale` with fewer errors.
 

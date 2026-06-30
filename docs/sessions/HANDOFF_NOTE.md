@@ -362,3 +362,26 @@ Low-priority gaps #8 (registry tickers on frontier), #15 (`datetime.utcnow`), #1
 
 ## Next single priority
 Implement scenario-adjusted expected returns (METHODOLOGY §6) and tighten equity cycle fallback using valuation z-score.
+
+---
+
+# Handoff Note — Smoother Docker Launch and Build (2026-06-30)
+
+## Completed
+- Added `backend/.dockerignore` and `frontend/.dockerignore` to shrink Docker build contexts.
+- Updated `backend/Dockerfile` and `frontend/Dockerfile` with BuildKit syntax and pip/npm cache mounts; added `curl` to backend image for healthchecks.
+- Added backend `healthcheck` and `depends_on: condition: service_healthy` in `docker-compose.yml` and `docker-compose.prod.yml`.
+- Added `scripts/docker-up.ps1` and `scripts/docker-up.sh` (`-Build`/`-Bootstrap` flags).
+- Added root `Makefile` targets: `build`, `up`, `up-build`, `bootstrap`, `health`, `logs`, `down`.
+- Updated `README.md`, `docs/BUILD.md`, `docs/modules/01_DOCKER_SETUP.md`, `docs/RUNBOOKS.md`, `docs/HANDOFF_CHECKLIST.md` for build-once / up-daily workflow.
+
+## Validation record (2026-06-30)
+- **Build context (measured from `docker compose build` log):**
+  - Frontend: **7.89 kB** transferred (was ~116 MB before `.dockerignore`)
+  - Backend: **580 kB** transferred (was ~19 MB)
+- **Cold full rebuild:** Still slow on Windows Docker (`apt-get` + `npm ci`); session build did not complete within 30 min due to Docker Desktop congestion (parallel build + container start blocked).
+- **Warm launch:** Use `docker compose up -d` or `.\scripts\docker-up.ps1` after images exist; do not use `--build` on daily launches.
+- **Recommended local verify:** `docker compose build` → `.\scripts\docker-up.ps1 -Bootstrap` → open http://localhost:3000
+
+## Next single priority
+Verify warm launch timing on a clean Docker Desktop session; confirm frontend starts only after backend healthcheck passes (`docker compose ps` shows backend `healthy`).

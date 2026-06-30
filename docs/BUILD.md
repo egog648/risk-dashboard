@@ -42,26 +42,30 @@ cp backend/.env.example backend/.env
 # 2. Set frontend env
 cp frontend/.env.local.example frontend/.env.local
 
-# 3. Start everything
-docker-compose up --build
+# 3. Build images (first time or after dependency changes)
+docker compose build
 
-# 4. Verify backend health before first refresh
+# 4. Start services (daily — no rebuild)
+docker compose up -d
+# Or: .\scripts\docker-up.ps1 -Bootstrap  (Windows)
+
+# 5. Verify backend health before first refresh
 curl http://localhost:8000/health
 
-# 5. Seed initial data (required on first run — takes ~2 min)
+# 6. Seed initial data (required on first run — takes ~2 min)
 curl -X POST http://localhost:8000/api/v1/data-status/refresh
 
-# 6. Poll data readiness until overall_status is not "error"
+# 7. Poll data readiness until overall_status is not "error"
 curl http://localhost:8000/api/v1/data-status
 
-# 7. Run core endpoint smoke checks
+# 8. Run core endpoint smoke checks
 curl http://localhost:8000/api/v1/equities/all
 curl http://localhost:8000/api/v1/credit/all
 curl http://localhost:8000/api/v1/credit/yield-curve
 curl http://localhost:8000/api/v1/hard-assets/all
 curl http://localhost:8000/api/v1/cash/all
 
-# 8. Open dashboard
+# 9. Open dashboard
 # Windows PowerShell:
 start http://localhost:3000
 ```

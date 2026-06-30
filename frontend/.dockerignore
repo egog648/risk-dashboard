@@ -1,0 +1,30 @@
+node_modules/
+.next/
+out/
+frontend/test-results/
+test-results/
+playwright-report/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env (set via compose)
+.env.local
+.env.*.local
+
+# Tests and e2e (not needed in runtime image)
+tests/
+e2e/
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+*.log

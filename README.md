@@ -33,17 +33,41 @@ A macro risk dashboard that calculates forward-looking risk and expected returns
    # TIINGO_API_KEY=your_key_here
    ```
 
-2. Start all services:
+2. **First time only** — build images:
    ```bash
-   docker-compose up --build
+   docker compose build
    ```
 
-3. Open http://localhost:3000
+3. **Daily launch** — start services (no rebuild):
+   ```bash
+   docker compose up -d
+   ```
+   Or use the launcher (waits for backend health, optional data bootstrap):
+   ```powershell
+   # Windows
+   .\scripts\docker-up.ps1 -Bootstrap
+   ```
+   ```bash
+   # Linux / macOS
+   ./scripts/docker-up.sh --bootstrap
+   ```
+
+4. Open http://localhost:3000
+
+Rebuild images only when `requirements.txt`, `package-lock.json`, or Dockerfiles change:
+`docker compose build` then `docker compose up -d`.
+
+Enable BuildKit for faster rebuilds (recommended):
+```powershell
+$env:DOCKER_BUILDKIT = "1"
+$env:COMPOSE_DOCKER_CLI_BUILD = "1"
+```
 
 **Production compose** (release targets, no hot reload):
 
 ```bash
-docker compose -f docker-compose.prod.yml up --build
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 See `docs/modules/01_DOCKER_SETUP.md` for production env details.
@@ -56,6 +80,7 @@ Start at **`docs/README.md`**, then as needed:
 - `docs/ARCHITECTURE.md`
 - `docs/HANDOFF_CHECKLIST.md`
 - `docs/RUNBOOKS.md`
+- `docs/LAUNCH.md`
 - `docs/KNOWN_GAPS.md`
 - `docs/ROADMAP.md`
 

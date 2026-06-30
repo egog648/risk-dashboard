@@ -12,6 +12,7 @@ Short rules for contributors and agents. Read this before writing docs or code.
 | What phase are we in? | [ROADMAP.md](ROADMAP.md) |
 | How are metrics calculated? | [METHODOLOGY.md](METHODOLOGY.md) |
 | How do I run tests / fix incidents? | [RUNBOOKS.md](RUNBOOKS.md) |
+| How do I launch the app (agent / daily start)? | [LAUNCH.md](LAUNCH.md) |
 
 ## Conflict resolution
 
@@ -50,6 +51,8 @@ When shipping a feature:
 2. Read this file.
 3. Open [BUILD.md](BUILD.md) and identify the current module.
 4. Read that module file before editing code.
+
+**If the user asks to launch the app:** follow [LAUNCH.md](LAUNCH.md) — use `.\scripts\docker-up.ps1` without `-Build` unless images are missing; never default to `docker compose up --build`.
 
 ## Anti-patterns
 

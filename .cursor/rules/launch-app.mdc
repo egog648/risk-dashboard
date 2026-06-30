@@ -1,0 +1,39 @@
+---
+description: Fast app launch when user asks to start or run the Risk Dashboard
+alwaysApply: true
+---
+
+# Launch the app
+
+When the user asks to **launch**, **start**, or **run** the app, follow [docs/LAUNCH.md](docs/LAUNCH.md). Summary:
+
+## Fast path (default)
+
+1. Check if already healthy: `docker compose ps` and `GET http://localhost:8000/health` — if ok, report URLs and stop.
+2. Free ports if blocked: `docker compose down`; kill orphan processes on `:8000` / `:3000` if needed.
+3. Launch without rebuild (Windows):
+   ```powershell
+   $env:DOCKER_BUILDKIT = "1"
+   $env:COMPOSE_DOCKER_CLI_BUILD = "1"
+   .\scripts\docker-up.ps1
+   ```
+4. Report: http://localhost:3000 , http://localhost:8000/docs
+
+## Rules
+
+- **Do not** run `docker compose up --build` unless images are missing or deps/Dockerfiles changed.
+- **Do not** use `-Bootstrap` unless data is empty/stale or user asks — it adds ~2 min.
+- Use `-Build` only when `requirements.txt`, `package-lock.json`, or Dockerfiles changed.
+- **Do not** run `docker compose build` and `docker compose up` in parallel on Windows.
+- Run commands yourself; do not only tell the user what to run.
+- Docker-first; fallback to local uvicorn + `npm run dev` only if Docker is stuck after cleanup.
+
+## Rebuild path
+
+```powershell
+.\scripts\docker-up.ps1 -Build
+```
+
+## Stop
+
+`docker compose down`

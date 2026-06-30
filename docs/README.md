@@ -6,7 +6,7 @@ Single entry point for all project documentation.
 
 | Goal | Read in order |
 |------|---------------|
-| **Run the app** | [../README.md](../README.md) → [BUILD.md](BUILD.md) Part 1 → [RUNBOOKS.md](RUNBOOKS.md) |
+| **Run the app** | [../README.md](../README.md) → [LAUNCH.md](LAUNCH.md) → [RUNBOOKS.md](RUNBOOKS.md) |
 | **Build the next feature** | [DOC_RULES.md](DOC_RULES.md) → [BUILD.md](BUILD.md) (find current module) → `modules/NN_*.md` |
 | **Understand the system** | [ARCHITECTURE.md](ARCHITECTURE.md) → [METHODOLOGY.md](METHODOLOGY.md) → [KNOWN_GAPS.md](KNOWN_GAPS.md) |
 | **Hand off to a new session** | [HANDOFF_CHECKLIST.md](HANDOFF_CHECKLIST.md) → latest note in [sessions/HANDOFF_NOTE.md](sessions/HANDOFF_NOTE.md) |
@@ -22,6 +22,7 @@ Single entry point for all project documentation.
 | [ROADMAP.md](ROADMAP.md) | Phase status and priorities | Phase completes or reprioritized |
 | [KNOWN_GAPS.md](KNOWN_GAPS.md) | Confirmed limitations | Gap found or fixed |
 | [RUNBOOKS.md](RUNBOOKS.md) | Ops incidents and test commands | Ops or test workflow changes |
+| [LAUNCH.md](LAUNCH.md) | Agent/operator fast launch (Docker daily start) | Launch workflow changes |
 | [HANDOFF_CHECKLIST.md](HANDOFF_CHECKLIST.md) | New-contributor bootstrap | Setup sequence changes |
 | [reference/FRED_SERIES.md](reference/FRED_SERIES.md) | FRED series registry | New macro series added |
 | [sessions/HANDOFF_NOTE.md](sessions/HANDOFF_NOTE.md) | Rolling session log | End of each work session |

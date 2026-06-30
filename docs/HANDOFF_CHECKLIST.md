@@ -26,13 +26,18 @@ Use this checklist when handing the project to a new chat or contributor.
     - `NEXT_PUBLIC_API_URL=http://localhost:8000`
 
 ## 3) Launch
-- **Development** (hot reload, source bind mounts):
-  - `docker-compose up --build`
+- **Agent fast path:** see [LAUNCH.md](LAUNCH.md) — `.\scripts\docker-up.ps1` (no `-Build` unless deps changed)
+- **First time / after dependency changes** — build images:
+  - `docker compose build` (dev) or `docker compose -f docker-compose.prod.yml build` (prod)
+- **Daily development** (hot reload, source bind mounts):
+  - `docker compose up -d` or `.\scripts\docker-up.ps1` (Windows) / `./scripts/docker-up.sh` (Linux/macOS)
+  - Optional first-run data: add `-Bootstrap` / `--bootstrap`
 - **Production** (release targets, image-baked code):
-  - `docker compose -f docker-compose.prod.yml up --build`
+  - `docker compose -f docker-compose.prod.yml up -d`
 - Open:
   - Frontend: `http://localhost:3000`
   - Backend docs: `http://localhost:8000/docs`
+- Rebuild only when `requirements.txt`, `package-lock.json`, or Dockerfiles change (not on every launch).
 
 ## 3.5) Deterministic First-Run Bootstrap (required)
 Run this sequence in order before validating app behavior:
